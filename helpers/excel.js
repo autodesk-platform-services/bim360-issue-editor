@@ -6,9 +6,9 @@ const ExcelJS = require('exceljs');
  * Exports BIM360 issues and related data into XLSX spreadsheet.
  * @async
  * @param {object} opts Export options.
- * @param {string} opts.two_legged_token 2-legged access token for Forge requests requiring app context.
- * @param {string} opts.three_legged_token 3-legged access token for Forge requests requiring user context.
- * @param {string} opts.region Forge region ("US" or "EMEA").
+ * @param {string} opts.two_legged_token 2-legged access token for APS requests requiring app context.
+ * @param {string} opts.three_legged_token 3-legged access token for APS requests requiring user context.
+ * @param {string} opts.region APS region ("US" or "EMEA").
  * @param {string} opts.hub_id BIM360 hub ID.
  * @param {string} opts.project_id BIM360 project ID.
  * @param {string} opts.issue_container_id BIM360 issues container ID.
@@ -399,7 +399,7 @@ function encodeNameID(name, id) {
  * @async
  * @param {Buffer} buffer XLSX data.
  * @param {string} issueContainerID BIM360 issues container ID.
- * @param {string} threeLeggedToken 3-legged access token for Forge requests requiring user context.
+ * @param {string} threeLeggedToken 3-legged access token for APS requests requiring user context.
  * @param {boolean} [sequential=false] Flag for updating issues sequentially instead of in bulk.
  * @param {array} [range=null] Array of two integers specifying the number range of rows to import.
  * @returns {object} Results object listing successfully created issues (in 'succeeded' property)

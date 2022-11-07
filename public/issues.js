@@ -35,7 +35,7 @@ class IssueView {
         try {
             this.locations = await this.locationClient.listLocations();
         } catch (err) {
-            $.notify('Could not obtain locations.\nForge application does not have access to this feature.', 'warning');
+            $.notify('Could not obtain locations.\nAPS application does not have access to this feature.', 'warning');
             console.warn('Could not obtain locations.', err);
         }
         this.hideSpinner();
