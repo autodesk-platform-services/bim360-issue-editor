@@ -2,7 +2,6 @@
   "name": "bim360-issue-editor",
   "version": "0.0.1",
   "description": "Prototype application for bulk-editing BIM 360 issues using Autodesk Platform Services APIs.",
-  "author": "Petr Broz <petr.broz@autodesk.com>",
   "keywords": [
     "autodesk-platform-services",
     "bim360"

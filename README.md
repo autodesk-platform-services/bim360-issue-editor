@@ -1,4 +1,4 @@
-# bim360-issue-editor
+# BIM360 Issue Editor
 
 ![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
 ![Node.js](https://img.shields.io/badge/node-%3E%3D%2010.0.0-brightgreen.svg)
@@ -12,7 +12,7 @@
 Prototype application for bulk-editing [BIM 360](https://www.autodesk.com/bim-360/) issues
 using [Autodesk Platform Services](https://aps.autodesk.com) APIs.
 
-![Screenshot](./docs/screenshot.png)
+![Screenshot](./thumbnail.png)
 
 ## Running
 
