@@ -12,7 +12,7 @@
 Prototype application for bulk-editing [BIM 360](https://www.autodesk.com/bim-360/) issues
 using [Autodesk Platform Services](https://aps.autodesk.com) APIs.
 
-![Screenshot](./thumbnail.png)
+![thumbnail](./thumbnail.png)
 
 ## Running
 
