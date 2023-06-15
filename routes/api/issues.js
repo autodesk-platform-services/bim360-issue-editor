@@ -154,8 +154,8 @@ router.get('/:issue_container/export', async function (req, res) {
 router.get('/:issue_container/export-email', async function (req, res) {
     const { issue_container } = req.params;
     const { hub_id, region, location_container_id, project_id } = req.query;
-    // const { user_email } = req.session;
-    const  user_email  = "carolgitonga45@gmail.com";
+    const { user_email } = req.session;
+    // const  user_email  = "carolgitonga45@gmail.com";
 
     try {
         const twoLeggedToken = await authClient.authenticate(['data:read', 'data:write', 'data:create', 'account:read']);

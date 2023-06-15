@@ -1,6 +1,7 @@
 const express = require('express');
 const { AuthenticationClient } = require('forge-server-utils');
 const config = require('../config');
+const bim360V2 = require('./../helpers/bim360V2');
 
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 let router = express.Router();
@@ -18,9 +19,13 @@ router.get('/callback', async function (req, res) {
         req.session.access_token = token.access_token;
         req.session.refresh_token = token.refresh_token;
         req.session.expires_at = Date.now() + token.expires_in * 1000;
-        const profile = await authClient.getUserProfile(req.session.access_token);
-        req.session.user_name = profile.userName;
-        req.session.user_email = profile.emailVerified ? profile.emailId : '';
+        // const profile = await authClient.getUserProfile(req.session.access_token);
+        const profile = await bim360V2.getUserProfile(req.session.access_token);
+
+        req.session.user_name = profile.name;
+        // req.session.user_email = profile.email_verified ? profile.email : '';
+        req.session.user_email = profile.email;
+
         res.redirect('/');
     } catch(err) {
         res.status(400).json(err);

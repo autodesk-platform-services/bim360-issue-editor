@@ -362,16 +362,6 @@ async function updateIssue(containerId, issueId, payload, three_legged_token ) {
     return null
   }
 
-// const headers = { 'Content-Type': 'application/vnd.api+json' };
-// const params = {
-//     data: {
-//         type: 'quality_issues',
-//         id: issueId,
-//         attributes
-//     }
-// };
-// const response = await this.patch(`issues/v1/containers/${encodeURIComponent(containerId)}/quality-issues/${encodeURIComponent(issueId)}`, params, headers, WriteTokenScopes);
-// return Object.assign(response.data.attributes, { id: response.data.id });
 }
 
 async function patch(endpoint, headers, body) {
@@ -384,6 +374,17 @@ async function patch(endpoint, headers, body) {
         const message = await response.text();
         throw new Error(response.status+ ' ' + response.statusText + ' ' + message);
     }
+}
+
+async function getUserProfile(token){
+    const config = {
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    };
+    const resp = await axios.get('https://api.userprofile.autodesk.com/userinfo', config);
+  //  https://api.userprofile.autodesk.com/userinfo
+    return resp.data;
 }
 
 
@@ -399,5 +400,5 @@ module.exports = {
     downloadAttachment,
     createIssue,
     updateIssue,
-    // patch
+    getUserProfile
 };
