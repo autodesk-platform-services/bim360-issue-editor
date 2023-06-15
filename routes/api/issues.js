@@ -370,7 +370,6 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
 
 
         const match = attachments.find(attachment => attachment.id === id);
-        console.log("match", match)
         if (match) {
             
             const file_full_path_name = await bim360V2.downloadAttachment(match.urn, match.name, token);

@@ -4,6 +4,8 @@ const config = require('./../config');
 const fs = require('fs');
 const path = require('path');
 const { ok } = require('assert');
+var stream = require('stream');
+const fetch = require('node-fetch');
 
 const base_url = 'https://developer.api.autodesk.com';
 
@@ -195,7 +197,7 @@ async function signeds3download(bucketKey, objectKey,  three_legged_token, name)
             'Authorization': `Bearer ${three_legged_token}`
         }
     };
-    const url = `${base_url}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3download`;
+    const url = `${base_url}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objecsssts/${encodeURIComponent(objectKey)}/signeds3download`;
     let response = await axios.get(url, opts, ReadTokenScopes);
     let results = response.data;
 
@@ -213,39 +215,59 @@ async function getBinary(endpoint, headers) {
         throw new Error(response.status+ ' ' + response.statusText + ' ' + message);
     }
 }
+
+async function isReadableStream(obj) {
+    return obj instanceof stream.Stream &&
+      typeof (obj._read === 'function') &&
+      typeof (obj._readableState === 'object');
+  }
 async function downloadAttachment(urn,name, token) {
     try { 
+        let attachment_object_key = ""
+        let attachment_bucket_key = ""
        
       //extract bucket key and object key of oss object
       var split_by_splash = urn.split("/") 
-      var split_by_colon = split_by_splash[0].split(":")
-      const attachment_object_key = split_by_splash[1]
-      const attachment_bucket_key = split_by_colon[3] 
+      if(split_by_splash.length == 1){
+        var split_by_colon = split_by_splash[0].split(":")
+        var length = split_by_colon.length
+
+        attachment_object_key = split_by_colon[length - 1]
+        attachment_bucket_key = split_by_colon[length - 2] 
+      }else{
+        var split_by_colon = split_by_splash[0].split(":")
+       attachment_object_key = split_by_splash[1]
+       attachment_bucket_key = split_by_colon[3] 
+      }
+      
   
       //Generate a signed S3 URL
       const res = await getS3SignedDownloadUrl(attachment_bucket_key,attachment_object_key, token)
       const s3_download_url = res.data.url 
       const rootDir = process.cwd();
+      let filename = "receipts.pdf"
       const file_full_path_name = path.join(rootDir,'Files', name) 
+    // const file_full_path_name = path.join(rootDir,'Files', filename) 
+
+      
+      const input_file_path_name = path.join(rootDir,'Files/Input', filename) 
+
 
     //   const fileStream = fs.WriteStream(file_full_path_name);
-      const fileStream = fs.CreateWriteStream(file_full_path_name);
+    const fileStream = fs.createWriteStream(file_full_path_name);
+    const body = await getBinary(s3_download_url) 
 
 
-      const body = await getBinary(s3_download_url) 
+
+    await new Promise((resolve, reject) => {
+      body.pipe(fileStream);
+      body.on("error", reject);
+      fileStream.on("finish", resolve);
+      console.log('Attachment File Saved.')  
+    });
+
+    return file_full_path_name 
   
-      await new Promise((resolve, reject) => {
-        // body.pipe(fileStream);
-        // body.on("error", reject);
-        // fileStream.from(body)
-        fileStream.write(body);
-        fileStream.on("error", reject);
-
-        fileStream.on("finish", resolve);
-        console.log('Attachment File Saved.')  
-      });
-  
-      return file_full_path_name 
   
     }catch (e) {
       console.error(`download attachment for urn = ${urn} failed: ${e}`)

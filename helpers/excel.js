@@ -1,10 +1,7 @@
 const { BIM360Client } = require('forge-server-utils');
 const axios = require('axios').default;
 const ExcelJS = require('exceljs');
-<<<<<<< HEAD
 const bim360V2 = require('./bim360V2');
-=======
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
 
 /**
  * Exports BIM360 issues and related data into XLSX spreadsheet.
@@ -33,7 +30,6 @@ async function exportIssues(opts) {
         page_offset,
         page_limit
     } = opts;
-<<<<<<< HEAD
     // const appContextBIM360 = new BIM360Client({ token: two_legged_token }, undefined, region);
     const userContextBIM360 = new BIM360Client({ token: three_legged_token }, undefined, region);
        
@@ -42,17 +38,6 @@ async function exportIssues(opts) {
         loadIssueTypes(three_legged_token, issue_container_id),
         loadUsers(project_id, two_legged_token),
         loadLocations(three_legged_token, location_container_id),
-=======
-    const appContextBIM360 = new BIM360Client({ token: two_legged_token }, undefined, region);
-    const userContextBIM360 = new BIM360Client({ token: three_legged_token }, undefined, region);
-
-    console.log('Fetching BIM360 data for export.');
-    const [issues, types, users, locations, documents] = await Promise.all([
-        loadIssues(userContextBIM360, issue_container_id, page_offset, page_limit),
-        loadIssueTypes(userContextBIM360, issue_container_id),
-        loadUsers(project_id, two_legged_token),
-        loadLocations(userContextBIM360, location_container_id),
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
         loadDocuments(userContextBIM360, hub_id, project_id)
     ]);
     console.log('Generating XLSX spreadsheet.');
@@ -67,17 +52,10 @@ async function exportIssues(opts) {
     return buffer;
 }
 
-<<<<<<< HEAD
 async function loadIssues(three_legged_token, issueContainerID, offset, limit) {
     let page = { offset: offset || 0, limit: limit || 128 };
     console.log('Fetching BIM360 issues page:', page);
     let issues = await bim360V2.listIssuesV2(issueContainerID, three_legged_token, {}, page);
-=======
-async function loadIssues(bim360, issueContainerID, offset, limit) {
-    let page = { offset: offset || 0, limit: limit || 128 };
-    console.log('Fetching BIM360 issues page:', page);
-    let issues = await bim360.listIssues(issueContainerID, {}, page);
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
     if ((typeof offset !== 'undefined') || (typeof limit !== 'undefined')) {
         return issues;
     }
@@ -86,24 +64,14 @@ async function loadIssues(bim360, issueContainerID, offset, limit) {
         results = results.concat(issues);
         page.offset += issues.length;
         console.log('Fetching BIM360 issues page:', page);
-<<<<<<< HEAD
         issues = await bim360V2.listIssuesV2(issueContainerID, three_legged_token, {}, page);
-=======
-        issues = await bim360.listIssues(issueContainerID, {}, page);
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
     }
     return results;
 }
 
-<<<<<<< HEAD
 async function loadIssueTypes(three_legged_token, issueContainerID) {
     console.log('Fetching BIM360 issue types.');
     const issueTypes = await bim360V2.listIssueTypesV2(issueContainerID,three_legged_token, true);
-=======
-async function loadIssueTypes(bim360, issueContainerID) {
-    console.log('Fetching BIM360 issue types.');
-    const issueTypes = await bim360.listIssueTypes(issueContainerID, true);
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
     return issueTypes;
 }
 
@@ -127,16 +95,11 @@ async function loadUsers(projectId, token) {
     return results;
 }
 
-<<<<<<< HEAD
 async function loadLocations(three_legged_token, locationContainerID) {
-=======
-async function loadLocations(bim360, locationContainerID) {
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
     let results = [];
     try {
         let page = { offset: 0, limit: 128 };
         console.log('Fetching BIM360 locations page:', page);
-<<<<<<< HEAD
         let locations = await bim360V2.listLocationNodes(locationContainerID,three_legged_token);
         // while (locations.length > 0) {
         //     results = results.concat(locations);
@@ -150,19 +113,6 @@ async function loadLocations(bim360, locationContainerID) {
         console.warn('Could not load BIM360 locations. The "Locations" worksheet will be empty.');
     }
     // return results;
-=======
-        let locations = await bim360.listLocationNodes(locationContainerID, page);
-        while (locations.length > 0) {
-            results = results.concat(locations);
-            page.offset += locations.length;
-            console.log('Fetching BIM360 locations page:', page);
-            locations = await bim360.listLocationNodes(locationContainerID, page); 
-        }
-    } catch (err) {
-        console.warn('Could not load BIM360 locations. The "Locations" worksheet will be empty.');
-    }
-    return results;
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
 }
 
 async function loadDocuments(bim360, hubId, projectId) {
@@ -241,7 +191,6 @@ function fillIssues(worksheet, issues, types, users, locations, documents) {
     };
 
     const IssueDocumentFormat = (documentID) => {
-<<<<<<< HEAD
 
         if(documentID.length > 0){
             const documentUrn = documentID[0].urn;
@@ -258,14 +207,6 @@ function fillIssues(worksheet, issues, types, users, locations, documents) {
         // } else {
         //     return '';
         // }
-=======
-        const document = documents.find(d => d.relationships.item && d.relationships.item.data.id === documentID);
-        if (document) {
-            return encodeNameID(document.attributes.displayName, document.id);
-        } else {
-            return '';
-        }
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
     };
 
     const IssueTypeValidation = {
@@ -300,7 +241,6 @@ function fillIssues(worksheet, issues, types, users, locations, documents) {
 
     const IssueColumns = [
         { id: 'id',             propertyName: 'id',                     columnTitle: 'ID',          columnWidth: 8,     locked: true },
-<<<<<<< HEAD
         { id: 'type',           propertyName: 'issueSubtypeId',         columnTitle: 'Type',        columnWidth: 16,    locked: true,   format: IssueTypeFormat,        validation: IssueTypeValidation },
         { id: 'title',          propertyName: 'title',                  columnTitle: 'Title',       columnWidth: 32,    locked: false },
         { id: 'description',    propertyName: 'description',            columnTitle: 'Description', columnWidth: 32,    locked: false },
@@ -311,18 +251,6 @@ function fillIssues(worksheet, issues, types, users, locations, documents) {
         // { id: 'answer',         propertyName: 'answer',                 columnTitle: 'Answer',      columnWidth: 32,    locked: false },
         { id: 'comments',       propertyName: 'commentCount',           columnTitle: 'Comments',    columnWidth: 8,     locked: true },
         { id: 'attachments',    propertyName: 'attachmentCount',       columnTitle: 'Attachments', columnWidth: 8,     locked: true }
-=======
-        { id: 'type',           propertyName: 'ng_issue_subtype_id',    columnTitle: 'Type',        columnWidth: 16,    locked: true,   format: IssueTypeFormat,        validation: IssueTypeValidation },
-        { id: 'title',          propertyName: 'title',                  columnTitle: 'Title',       columnWidth: 32,    locked: false },
-        { id: 'description',    propertyName: 'description',            columnTitle: 'Description', columnWidth: 32,    locked: false },
-        { id: 'owner',          propertyName: 'owner',                  columnTitle: 'Owner',       columnWidth: 16,    locked: true,   format: IssueOwnerFormat,       validation: IssueOwnerValidation },
-        { id: 'location',       propertyName: 'lbs_location',           columnTitle: 'Location',    columnWidth: 16,    locked: true,   format: IssueLocationFormat,    validation: IssueLocationValidation },
-        { id: 'document',       propertyName: 'target_urn',             columnTitle: 'Document',    columnWidth: 32,    locked: true,   format: IssueDocumentFormat,    validation: IssueDocumentValidation },
-        { id: 'status',         propertyName: 'status',                 columnTitle: 'Status',      columnWidth: 16,    locked: false,                                  validation: IssueStatusValidation },
-        { id: 'answer',         propertyName: 'answer',                 columnTitle: 'Answer',      columnWidth: 32,    locked: false },
-        { id: 'comments',       propertyName: 'comment_count',          columnTitle: 'Comments',    columnWidth: 8,     locked: true },
-        { id: 'attachments',    propertyName: 'attachment_count',       columnTitle: 'Attachments', columnWidth: 8,     locked: true }
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
     ];
 
     worksheet.columns = IssueColumns.map(col => {
@@ -515,12 +443,8 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
     // fetch the latest state of the issues from BIM360 and only
     // update those that have (and _can_ be) changed.
     console.log('Fetching latest BIM360 issues.');
-<<<<<<< HEAD
     const issues = await loadIssues(threeLeggedToken, issueContainerID) 
     // const issues = await loadIssues(bim360, issueContainerID);
-=======
-    const issues = await loadIssues(bim360, issueContainerID);
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
 
     if (sequential) {
         console.log('Parsing spreadsheet data.');
@@ -529,11 +453,7 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
     }
 
     const tasks = []; // Can be either promises, or objects with update params (if `sequential` mode is used)
-<<<<<<< HEAD
     worksheet.eachRow(function(row, rowNumber) {
-=======
-    worksheet.eachRow(function (row, rowNumber) {
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
         if (rowNumber === 1) {
             return; // Skip the header row
         }
@@ -545,15 +465,11 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
         try {
             const issueID = row.values[1];
             const currentIssueAttributes = issues.find(issue => issue.id === issueID);
-<<<<<<< HEAD
 
 
             const newIssueTypeMatch = unrich(row.values[2]).match(/.+\[(.+),(.+)\]$/);
 
 
-=======
-            const newIssueTypeMatch = unrich(row.values[2]).match(/.+\[(.+),(.+)\]$/);
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
             if (!newIssueTypeMatch) {
                 results.failed.push({ id: issueID, row: rowNumber, error: 'Could not parse issue type and subtype IDs.' });
                 return;
@@ -569,7 +485,6 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
             //     return;
             // }
             const newIssueAttributes = {
-<<<<<<< HEAD
                 issueTypeId: newIssueTypeMatch[1],
                 issueSubtypeId: newIssueTypeMatch[2],
                 title: unrich(row.values[3]),
@@ -579,36 +494,17 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
                 //document: ...
                 status: unrich(row.values[8]),
                 // answer: unrich(row.values[9])
-=======
-                ng_issue_type_id: newIssueTypeMatch[1],
-                ng_issue_subtype_id: newIssueTypeMatch[2],
-                title: unrich(row.values[3]),
-                description: unrich(row.values[4]),
-                owner: newIssueOwner[1],
-                lbs_location: newIssueLocation ? newIssueLocation[1] : null,
-                //document: ...
-                status: unrich(row.values[8]),
-                answer: unrich(row.values[9])
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
             };
 
             // Check if the issue exists in BIM360
             if (!currentIssueAttributes) {
                 //results.failed.push({ id: issueID, row: rowNumber, error: 'Issue not found in BIM360.' });
-<<<<<<< HEAD
                 tasks.push(createIssue(threeLeggedToken, issueContainerID, newIssueAttributes, results));
  
             }else{
 
                 const issueNumber = currentIssueAttributes.displayId;
                 console.log("updated issue displayId", issueNumber)
-=======
-                tasks.push(createIssue(bim360, issueContainerID, newIssueAttributes, results));
- 
-            }else{
-
-                const issueNumber = currentIssueAttributes.identifier;
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
 
                 // Check if any of the new issue properties differ from the original in BIM360, and if they *can* be changed
                 let blockedAttributeUpdates = [];
@@ -616,16 +512,11 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
                     if (currentIssueAttributes[key] == newIssueAttributes[key]) { // both values are equal
                         delete newIssueAttributes[key];
                     } else if (!currentIssueAttributes[key] && !newIssueAttributes[key]) { // both values are "falsy" (e.g., an empty string and a null)
-<<<<<<< HEAD
 
                         delete newIssueAttributes[key];
                     } 
                     else if (currentIssueAttributes.permittedAttributes.indexOf(key) === -1) { // field change not permitted
                         console.log("currentIssueAttributes[key] == newIssueAttributes[key] : field change not permitted", currentIssueAttributes.permitted_attributes.indexOf(key))
-=======
-                        delete newIssueAttributes[key];
-                    } else if (currentIssueAttributes.permitted_attributes.indexOf(key) === -1) { // field change not permitted
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
                         blockedAttributeUpdates.push(key);
                     }
                 }
@@ -640,11 +531,7 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
                 if (sequential) {
                     tasks.push({ bim360, issueContainerID, issueID, currentIssueAttributes, newIssueAttributes, blockedAttributeUpdates, issueNumber, results });
                 } else {
-<<<<<<< HEAD
                     tasks.push(updateIssue(threeLeggedToken, issueContainerID, issueID, currentIssueAttributes, newIssueAttributes, blockedAttributeUpdates, issueNumber, results));
-=======
-                    tasks.push(updateIssue(bim360, issueContainerID, issueID, currentIssueAttributes, newIssueAttributes, blockedAttributeUpdates, issueNumber, results));
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
                 }
             } 
         } catch (err) {
@@ -657,11 +544,7 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
         for (const task of tasks) {
             const { bim360, issueContainerID, issueID, currentIssueAttributes, newIssueAttributes, blockedAttributeUpdates, issueNumber, results } = task;
             console.log('Updating issue', issueID);
-<<<<<<< HEAD
             await updateIssue(threeLeggedToken, issueContainerID, issueID, currentIssueAttributes, newIssueAttributes, blockedAttributeUpdates, issueNumber, results);
-=======
-            await updateIssue(bim360, issueContainerID, issueID, currentIssueAttributes, newIssueAttributes, blockedAttributeUpdates, issueNumber, results);
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
         }
     } else {
         console.log('Waiting for all updates to complete.');
@@ -671,26 +554,15 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
     return results;
 }
 
-<<<<<<< HEAD
 async function updateIssue(threeLeggedToken, issueContainerID, issueID, currentIssueAttributes, newIssueAttributes, blockedAttributes, issueNumber, results) {
-=======
-async function updateIssue(bim360, issueContainerID, issueID, currentIssueAttributes, newIssueAttributes, blockedAttributes, issueNumber, results) {
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
     try {
         // If some attributes are not permitted to be changed, try temporarily switching to issue status "open"
         if (blockedAttributes.length > 0) {
             const _status = currentIssueAttributes.status;
-<<<<<<< HEAD
             updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, { status: 'open' }, threeLeggedToken);
             updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, newIssueAttributes, threeLeggedToken);
             if (!newIssueAttributes.status) {
                 updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, { status: _status }, threeLeggedToken);
-=======
-            updatedIssue = await bim360.updateIssue(issueContainerID, issueID, { status: 'open' });
-            updatedIssue = await bim360.updateIssue(issueContainerID, issueID, newIssueAttributes);
-            if (!newIssueAttributes.status) {
-                updatedIssue = await bim360.updateIssue(issueContainerID, issueID, { status: _status });
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
             }
             results.succeeded.push({
                 number: issueNumber,
@@ -698,11 +570,7 @@ async function updateIssue(bim360, issueContainerID, issueID, currentIssueAttrib
                 issue: updatedIssue
             });
         } else {
-<<<<<<< HEAD
             const updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, newIssueAttributes, threeLeggedToken);
-=======
-            const updatedIssue = await bim360.updateIssue(issueContainerID, issueID, newIssueAttributes);
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
             results.succeeded.push({
                 number: issueNumber,
                 id: issueID,
@@ -718,19 +586,11 @@ async function updateIssue(bim360, issueContainerID, issueID, currentIssueAttrib
     }
 }
 
-<<<<<<< HEAD
 async function createIssue(threeLeggedToken, issueContainerID, newIssueAttributes, results) {
     try { 
         const createdIssue = await bim360V2.createIssue(issueContainerID, newIssueAttributes, threeLeggedToken);
         results.succeeded.push({
             number: createdIssue.displayId,
-=======
-async function createIssue(bim360, issueContainerID, newIssueAttributes, results) {
-    try { 
-        const createdIssue = await bim360.createIssue(issueContainerID, newIssueAttributes);
-        results.succeeded.push({
-            number: createdIssue.identifier,
->>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
             id: createdIssue.id,
             issue: createdIssue
         }); 
