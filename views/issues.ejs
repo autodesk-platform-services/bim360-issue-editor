@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" href="https://cdn.autodesk.io/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/theme.css">
+    <link rel="stylesheet" href="/main.css">
+    <link rel="stylesheet" href="/issues.css">
+    <script src="https://kit.fontawesome.com/8309329604.js" crossorigin="anonymous"></script>
+    <title>BIM360 Issue Editor</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">
+            <img src="https://cdn.autodesk.io/logo/white/stacked.png" alt="Autodesk Platform Services">
+            BIM360 Issues Editor
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle Navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar-collapsible">
+            <ol class="breadcrumb mr-auto">
+                <li class="breadcrumb-item" aria-current="page">
+                    <a href="/<%= hub.id %>"><%= hub.name %></a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <%= project.name %>
+                </li>
+            </ol>
+            <% if (!session || !session.access_token) { %>
+                <a class="btn btn-primary ml-auto" href="/auth/login">Login</a>
+            <% } else { %>
+                <div class="dropdown ml-auto">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="login-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <%= session.user_name %>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="login-dropdown">
+                        <a class="dropdown-item" href="/auth/logout">Logout</a>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </nav>
+    <div id="container">
+        <h4>Issues</h4>
+        <div id="filter">
+            <div class="row">
+                <label for="issue-num-picker" class="col-lg-1 col-md-2 col-sm-4">Number:</label>
+                <input type="number" id="issue-num-picker" class="col-lg-2 col-md-4 col-sm-8 form-control form-control-sm">
+                <label for="owner-picker" class="col-lg-1 col-md-2 col-sm-4">Owner:</label>
+                <select id="owner-picker" class="col-lg-2 col-md-4 col-sm-8 custom-select custom-select-sm"></select>
+                <label for="creator-picker" class="col-lg-1 col-md-2 col-sm-4">Created By:</label>
+                <select id="creator-picker" class="col-lg-2 col-md-4 col-sm-8 custom-select custom-select-sm"></select>
+            </div>
+            <div class="row">
+                <label for="issue-type-picker" class="col-lg-1 col-md-2 col-sm-4">Type:</label>
+                <select id="issue-type-picker" class="col-lg-2 col-md-4 col-sm-8 custom-select custom-select-sm"></select>
+                <label for="issue-subtype-picker" class="col-lg-1 col-md-2 col-sm-4">Subtype:</label>
+                <select id="issue-subtype-picker" class="col-lg-2 col-md-4 col-sm-8 custom-select custom-select-sm"></select>
+                <label for="due-date-picker" class="col-lg-1 col-md-2 col-sm-4">Due Date:</label>
+                <input type="date" id="due-date-picker" class="col-lg-2 col-md-4 col-sm-8 form-control form-control-sm">
+            </div>
+        </div>
+        <table id="issues-table" class="table table-sm">
+            <thead>
+                <tr>
+                    <th class="center" style="width: 4em;">#</th>
+                    <th style="width: 10em;">Type</th>
+                    <th style="width: 10em;">Subtype</th>
+                    <th style="width: 10em;">RootCauseCategory</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th style="width: 10em;">Owner</th>
+                    <th style="width: 8em;">Location</th>
+                   
+                    <th style="width: 10em;">Document</th>
+                    <th style="width: 6em;">Status</th>
+                    <th style="width: 6em;">Due Date</th>
+                    <!-- <th>Answer</th>
+                    <td>
+                        <input type="text" class="form-control form-control-sm issue-answer" data-original-value="${answer}" value="${answer}" ${disabled('answer', issue) ? 'disabled' : ''}>
+                    </td> -->
+                    <th class="center" style="width: 2em;"><i class="far fa-comments"></i></th>
+                    <th class="center" style="width: 2em;"><i class="fas fa-paperclip"></i></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="fixed-bottom bg-light">
+        <nav class="">
+            <ul id="pagination" class="pagination pagination-sm">
+                <li class="page-item">
+                    <a id="prev-page-link" class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Issues 10-20
+                    </span>
+                </li>
+                <li class="page-item">
+                    <a id="next-page-link" class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <!-- <a href="/api/issues/<%= issueContainer %>/export?hub_id=<%= hub.id %>&region=<%= hub.region %>&location_container_id=<%= locationContainer %>&project_id=<%= project.id %>&offset=0&limit=100" target="_blank" class="btn btn-sm btn-light ml-2">
+            <i class="fas fa-file-import"></i> Export First 100
+        </a> -->
+        <a href="/api/issues/<%= issueContainer %>/export?hub_id=<%= hub.id %>&region=<%= hub.region %>&location_container_id=<%= locationContainer %>&project_id=<%= project.id %>" target="_blank" class="btn btn-sm btn-light ml-2">
+            <i class="fas fa-file-import"></i> Export & Download Issues
+        </a>
+        <a href="/api/issues/<%= issueContainer %>/export-email?hub_id=<%= hub.id %>&region=<%= hub.region %>&location_container_id=<%= locationContainer %>&project_id=<%= project.id %>" target="_blank" class="btn btn-sm btn-light ml-2">
+            <i class="fas fa-file-import"></i> Export & E-mail Issues
+        </a>
+        <a id="import-issues" href="#" class="btn btn-sm btn-light ml-2">
+            <i class="fas fa-file-export"></i> Import Issues
+        </a>
+        <a href="/api/issues/<%= issueContainer %>/config.json.zip?hub_id=<%= hub.id %>&region=<%= hub.region %>&location_container_id=<%= locationContainer %>&project_id=<%= project.id %>" target="_blank" class="btn btn-sm btn-light ml-2 mr-auto">
+            <i class="fas fa-terminal"></i> Command-Line Config
+        </a>
+        <form id="xlsx-upload" method='post' enctype="multipart/form-data">
+            <input id="hidden-upload-file" type="file" name="xlsx" style="visibility:hidden" />
+        </form>
+        <button type="button" id="update-issues-button" class="btn btn-sm btn-success" disabled>
+            <i class="fas fa-cloud-upload-alt"></i> Update Issues
+        </button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://rawgit.com/notifyjs/notifyjs/master/dist/notify.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script>
+        $.notify.defaults({
+            showAnimation: 'fadeIn',
+            hideAnimation: 'fadeOut'
+        });
+    </script>
+    <script src="/issues.js"></script>
+    <% if (account && issueContainer && locationContainer) { %>
+        <script>
+            const url = new URL(window.location.href);
+            const region = '<%= hub.region %>';
+            const issueView = new IssueView(
+                new UsersClient('<%= project.id %>', region),
+                new IssueClient('<%= issueContainer %>', region),
+                new LocationClient('<%= locationContainer %>', region),
+                new DocsClient('<%= project.id %>', region)
+            );
+            issueView.init();
+        </script>
+    <% } %>
+</body>
+
+</html>

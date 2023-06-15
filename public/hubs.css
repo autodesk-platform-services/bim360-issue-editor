@@ -1,0 +1,11 @@
+body {
+    height: 100vh;
+}
+
+#container {
+    height: 100%;
+}
+
+.card {
+    margin-bottom: 1em;
+}

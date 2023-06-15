@@ -1,0 +1,34 @@
+#filter {
+    padding: 1em;
+}
+
+#filter label, #filter input, #filter select {
+    margin: 0;
+    margin-bottom: 0.5em;
+}
+
+#filter label {
+    margin-top: 0.25em;
+    text-align: right;
+}
+
+#issues-table > tbody button:disabled {
+    opacity: 0.25;
+}
+
+.fixed-bottom {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.5em;
+}
+
+ul.pagination {
+    margin-bottom: 0;
+}
+
+th.center, td.center {
+    text-align: center;
+    vertical-align: middle;
+}
