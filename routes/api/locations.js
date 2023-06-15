@@ -1,7 +1,10 @@
 const express = require('express');
 const { AuthenticationClient, BIM360Client } = require('forge-server-utils');
 const config = require('../../config');
+<<<<<<< HEAD
 const bim360V2 = require('../../helpers/bim360V2');
+=======
+>>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
 
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 let router = express.Router();
@@ -46,6 +49,7 @@ router.use('/', async function (req, res, next) {
 // GET /api/locations/:issue_container
 router.get('/:issue_container', async function (req, res) {
     const { issue_container } = req.params;
+<<<<<<< HEAD
     const  token  = req.bim360.token;
 
     // let page = null;
@@ -61,6 +65,17 @@ router.get('/:issue_container', async function (req, res) {
 
 
     // console.log("locations", locations)
+=======
+    let page = null;
+    if (req.query.offset || req.query.limit) {
+        page = {
+            limit: parseInt(req.query.limit) || 64,
+            offset: parseInt(req.query.offset) || 0
+        };
+    }
+    try {
+        const locations = await req.bim360.listLocationNodes(issue_container, page);
+>>>>>>> b2a7fcf7fd4828ce3d977a646d66cb54de30e032
         res.json(locations);
     } catch(err) {
         handleError(err, res);

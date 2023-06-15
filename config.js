@@ -1,7 +1,5 @@
 const { APS_APP_NAME, APS_CLIENT_ID, APS_CLIENT_SECRET, HOST_URL, SENDGRID_API_KEY } = process.env;
 
-
-
 module.exports = {
     app_name: APS_APP_NAME,
     client_id: APS_CLIENT_ID,
