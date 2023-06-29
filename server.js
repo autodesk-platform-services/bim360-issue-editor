@@ -8,12 +8,6 @@ if (!SERVER_SESSION_SECRET || !APS_APP_NAME || !APS_CLIENT_ID || !APS_CLIENT_SEC
     console.error('Some of the following env. variables are missing:');
     console.error('SERVER_SESSION_SECRET, APS_APP_NAME, APS_CLIENT_ID, APS_CLIENT_SECRET, HOST_URL, CLI_CONFIG_PASSWORD');
 
-    APS_CLIENT_ID= "kRnbgzJVVGtAeQu03m8YAQ89knW6yXVx",
-    APS_CLIENT_SECRET = "XqUAWMz9gZiK1x9T",
-    APS_APP_NAME = "Carol-Issues-Test-App",
-    HOST_URL = "http://localhost:3000",
-    SERVER_SESSION_SECRET = "MySecretSecret",
-    CLI_CONFIG_PASSWORD = "MySecondSecretPhrase";
 
     console.error('missing env. variables set');
     return;
