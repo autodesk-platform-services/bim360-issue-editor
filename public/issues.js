@@ -25,16 +25,14 @@ class IssueView {
                 this.userClient.listUsers(),
                 this.issueClient.listIssueTypes(),
                 this.issueClient.listRootCauses(),
-                // this.issueClient.listAttributeDefinitions(),
-                // this.issueClient.listAttributeMappings()
+              
 
             
             ]);
             this.users = users;
             this.issueTypes = issueTypes;
             this.rootCauses = rootCauses;
-            // const attrsDef = attrs;
-            // const attrMappings = mappings;
+           
 
 
         } catch (err) {

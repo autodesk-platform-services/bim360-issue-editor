@@ -12,9 +12,11 @@ const upload = multer({ dest: 'uploads/' });
 const config = require('../../config');
 const { exportIssues, importIssues } = require('../../helpers/excel');
 
-// const sayHello = require('../../helpers/hello.js');
 const bim360V2 = require('../../helpers/bim360V2');
-const { authRefreshMiddleware } = require('../oauth');
+const { authRefreshMiddleware } = require('../../services/aps');
+const { getUserProfile } = require('../../services/aps');
+
+
 
 mail.setApiKey(config.sendgrid_key);
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
@@ -36,11 +38,6 @@ function handleError(err, res) {
 // Parse JSON body
 router.use(express.json());
 
-
-
-
-
-// Refresh token whenever needed
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
         if (Date.now() > req.session.expires_at) {
@@ -49,16 +46,14 @@ router.use('/', async function (req, res, next) {
                 req.session.access_token = token.access_token;
                 req.session.refresh_token = token.refresh_token;
                 req.session.expires_at = Date.now() + token.expires_in * 1000;
-            } catch (err) {
-                handleError(err, res);
+            } catch(err) {
+                res.render('error', { session: req.session, error: err });
                 return;
             }
         }
         req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
-        next();
-    } else {
-        res.status(401).end();
     }
+    next();
 });
 
 
@@ -67,7 +62,7 @@ router.get('/:issue_container', async function (req, res) {
     
 
     const { issue_container } = req.params;
-    const  token  = req.bim360.token;
+    const  token  = req.session.access_token
     try {
         let filter = {};
         if (req.query.displayId) {
@@ -135,9 +130,7 @@ router.get('/:issue_container/export', async function (req, res) {
     const { issue_container } = req.params;
     const { hub_id, region, location_container_id, project_id, offset, limit } = req.query;
     try {
-        const twoLeggedToken = await authClient.authenticate(['data:read', 'data:write', 'data:create', 'account:read']);
         const excel = await exportIssues({
-            two_legged_token: twoLeggedToken.access_token,
             three_legged_token: req.session.access_token,
             region: region,
             hub_id: hub_id,
@@ -160,10 +153,8 @@ router.get('/:issue_container/export-email', async function (req, res) {
     const { user_email } = req.session;
 
     try {
-        const twoLeggedToken = await authClient.authenticate(['data:read', 'data:write', 'data:create', 'account:read']);
         if (user_email) {
             exportIssues({
-                two_legged_token: twoLeggedToken.access_token,
                 three_legged_token: req.session.access_token,
                 region: region,
                 hub_id: hub_id,
@@ -171,6 +162,7 @@ router.get('/:issue_container/export-email', async function (req, res) {
                 location_container_id: location_container_id,
                 project_id: project_id
             }).then(excel => {
+                mail.setApiKey(process.env.SENDGRID_API_KEY);
                 const msg = {
                     to: user_email,
                     from: 'petr.broz@autodesk.com',

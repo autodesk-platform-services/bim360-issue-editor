@@ -33,7 +33,7 @@
                 </li>
             </ol>
             <% if (!session || !session.access_token) { %>
-                <a class="btn btn-primary ml-auto" href="/auth/login">Login</a>
+                <a class="btn btn-primary ml-auto" href="/api/auth/login">Login</a>
             <% } else { %>
                 <div class="dropdown ml-auto">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="login-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

@@ -20,7 +20,6 @@ const bim360V2 = require('./bim360V2');
  */
 async function exportIssues(opts) {
     const {
-        two_legged_token,
         three_legged_token,
         region,
         hub_id,
@@ -30,18 +29,14 @@ async function exportIssues(opts) {
         page_offset,
         page_limit
     } = opts;
-    // const appContextBIM360 = new BIM360Client({ token: two_legged_token }, undefined, region);
     const userContextBIM360 = new BIM360Client({ token: three_legged_token }, undefined, region);
-       
-
-        // const usersxx = await loadUsers(project_id, three_legged_token)
-        // console.log("eport osers", usersxx)
+    
 
        
     const [issues, types, users, locations, documents] = await Promise.all([
         loadIssues(three_legged_token, issue_container_id, page_offset, page_limit),
         loadIssueTypes(three_legged_token, issue_container_id),
-        loadUsers(project_id, two_legged_token),
+        loadUsers(project_id, three_legged_token),
         loadLocations(three_legged_token, location_container_id),
         loadDocuments(userContextBIM360, hub_id, project_id)
     ]);
@@ -80,10 +75,9 @@ async function loadIssueTypes(three_legged_token, issueContainerID) {
     return issueTypes;
 }
 
-async function loadUsers(projectId, token) {
-    // console.log('Fetching BIM360 project users.');
+async function loadUsers(projectId, three_legged_token) {
 
-    const users = await bim360V2.listProjectUsers(projectId, token)
+    const users = await bim360V2.listProjectUsers(projectId, three_legged_token)
     
     return users;
 }
@@ -94,11 +88,7 @@ async function loadLocations(three_legged_token, locationContainerID) {
         let page = { offset: 0, limit: 128 };
         console.log('Fetching BIM360 locations page:', page);
         let locations = await bim360V2.listLocationNodes(locationContainerID,three_legged_token);
-        // while (locations.length > 0) {
-        //     results = results.concat(locations);
-        //     page.offset += locations.length;
-        //     console.log('Fetching BIM360 locations page:', page);
-        //     locations = await bim360V2.listLocationNodes(locationContainerID, three_legged_token); 
+        
     return locations;
 
         // }

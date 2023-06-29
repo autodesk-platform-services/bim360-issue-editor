@@ -47,7 +47,7 @@
   dependencies:
     deepmerge "^4.2.2"
 
-"@sendgrid/mail@^7.1.1":
+"@sendgrid/mail@^7.7.0":
   version "7.7.0"
   resolved "https://registry.npmjs.org/@sendgrid/mail/-/mail-7.7.0.tgz"
   integrity sha512-5+nApPE9wINBvHSUxwOxkkQqM/IAAaBYoP9hw7WwgDNQPxraruVqHizeTitVtKGiqWCKm2mnjh4XGN3fvFLqaw==

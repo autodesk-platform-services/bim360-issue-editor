@@ -3,6 +3,8 @@ const { AuthenticationClient, BIM360Client } = require('forge-server-utils');
 const config = require('../config');
 
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
+
+const { authRefreshMiddleware } = require('./../services/aps');
 let router = express.Router();
 
 // Refresh token whenever needed
@@ -23,6 +25,13 @@ router.use('/', async function (req, res, next) {
     }
     next();
 });
+// router.use('/', authRefreshMiddleware, async function (req, res) {
+//     if (req.internalOAuthToken) {
+//                 req.session.access_token = req.internalOAuthToken.access_token;
+//     } else {
+//         res.status(401).end();
+//     }
+// });
 
 router.get('/user', function (req, res, next) {
     console.log("User Router Working");
@@ -30,7 +39,7 @@ router.get('/user', function (req, res, next) {
 });
 
 // GET /
-router.get('/', async function (req, res) {
+router.get('/',async function (req, res) {
     try {
         let hubs = [];
         

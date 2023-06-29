@@ -431,6 +431,16 @@ async function listProjectUsers(projectId, token) {
     }
     return results;
 }
+async function getUserProfile(token){
+    const config = {
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    };
+    const resp = await axios.get('https://api.userprofile.autodesk.com/userinfo', config);
+    return resp.data;
+}
+
 
 
 
@@ -448,6 +458,7 @@ module.exports = {
     updateIssue,
     listIssueAttributeDefinitions,
     listIssueAttributeMappings,
-    listProjectUsers
+    listProjectUsers,
+    getUserProfile
 
 };
