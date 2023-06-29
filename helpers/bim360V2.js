@@ -19,7 +19,6 @@ async function listIssuesV2(containerId, three_legged_token,  filter, page){
     const headers = { 'Content-Type': 'application/vnd.api+json' };
     let opts = {
         headers: {
-            'Content-Type': 'application/vnd.api+json',
             'Authorization': `Bearer ${three_legged_token}`
         }
     };
@@ -64,9 +63,7 @@ async function listIssuesV2(containerId, three_legged_token,  filter, page){
             //     : filter.dueDate.toISOString());
             url += '&filter[dueDate]=' + filter.dueDate;
         }
-        // if (filter.synced_after) {
-        //     url += '&filter[synced_after]=' + filter.synced_after.toISOString();
-        // }
+        
         if (filter.createdAt) {
             url += '&filter[createdAt]=' + (Array.isArray(filter.createdAt)
                 ? filter.createdAt[0].toISOString() + '...' + filter.createdAt[1].toISOString()
@@ -102,15 +99,11 @@ async function listIssueTypesV2(containerId, three_legged_token ,includeSubtypes
 
     let opts = {
         headers: {
-            'Content-Type': 'application/vnd.api+json',
             'Authorization': `Bearer ${three_legged_token}`
         }
     };
 
-
-//     
     let response = await axios.get(`${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issue-types?limit=${PageSize}${includeSubtypes ? '&include=subtypes' : ''}`, opts, ReadTokenScopes);
-    // let results = response.results;
     let results = response.data.results;
     while (response.pagination && response.pagination.offset + response.pagination.limit < response.pagination.totalResults) {
         response = await axios.get(`${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issue-types?offset=${response.pagination.offset + response.pagination.limit}&limit=${PageSize}${includeSubtypes ? '&include=subtypes' : ''}`, opts, ReadTokenScopes);
@@ -123,7 +116,6 @@ async function listLocationNodes(containerId, three_legged_token) {
    
     let opts = {
         headers: {
-            // 'Content-Type': 'application/vnd.api+json',
             'Authorization': `Bearer ${three_legged_token}`
         }
     };
@@ -142,7 +134,6 @@ async function listLocationNodes(containerId, three_legged_token) {
 
 async function listIssueRootCauses(containerId, three_legged_token, includeRootCauses) {
     // TODO: support 'filter', 'include', or 'fields' params
-   const pagesize = 20;
     let opts = {
         headers: {
             'Authorization': `Bearer ${three_legged_token}`
@@ -163,7 +154,6 @@ async function listIssueComments(containerId, issueId, three_legged_token, page)
     const headers = { 'Content-Type': 'application/vnd.api+json' };
     let opts = {
         headers: {
-            // 'Content-Type': 'application/vnd.api+json',
             'Authorization': `Bearer ${three_legged_token}`
         }
     };
@@ -176,6 +166,7 @@ async function listIssueComments(containerId, issueId, three_legged_token, page)
     
     return results;
 }
+
 
 async function listIssueAttachments(containerId, issueId, three_legged_token) {
     // TODO: support 'filter', 'include', or 'fields' params
@@ -190,21 +181,48 @@ async function listIssueAttachments(containerId, issueId, three_legged_token) {
     return results;
 }
 
-async function signeds3download(bucketKey, objectKey,  three_legged_token, name){
+async function  listIssueAttributeDefinitions(containerId, three_legged_token) {
+    // TODO: support 'filter', 'include', or 'fields' params
     let opts = {
         headers: {
-            // 'Content-Type': 'application/vnd.api+json',
             'Authorization': `Bearer ${three_legged_token}`
         }
     };
-    const url = `${base_url}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objecsssts/${encodeURIComponent(objectKey)}/signeds3download`;
-    let response = await axios.get(url, opts, ReadTokenScopes);
-    let results = response.data;
+    let headers = {
+                'Authorization': `Bearer ${three_legged_token}`
+            }
+    const url = `${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-definitions?limit=${PageSize}`;
 
-    console.log("my s3 downloda URL", results)
+    let response = await axios.get(url, headers, ReadTokenScopes);
+
+    let results = response.results;
+    while (response.pagination && response.pagination.offset + response.pagination.limit < response.pagination.totalResults) {
+        response = await axios.get(`issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-definitions?offset=${response.pagination.offset + response.pagination.limit}&limit=${PageSize}`, headers, ReadTokenScopes);
+        results = results.concat(response.results);
+    }
     return results;
-   
 }
+
+async function listIssueAttributeMappings(containerId, three_legged_token) {
+    // TODO: support 'filter', 'include', or 'fields' params
+    let opts = {
+        headers: {
+            'Authorization': `Bearer ${three_legged_token}`
+        }
+    };
+    let headers = {
+        'Authorization': `Bearer ${three_legged_token}`
+    }
+    let response = await axios.get(`issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-mappings?limit=${PageSize}`, opts, ReadTokenScopes);
+    let results = response.results;
+    while (response.pagination && response.pagination.offset + response.pagination.limit < response.pagination.totalResults) {
+        response = await axios.get(`issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-mappings?offset=${response.pagination.offset + response.pagination.limit}&limit=${PageSize}`, headers, ReadTokenScopes);
+        results = results.concat(response.results);
+    }
+    return results;
+}
+
+
 async function getBinary(endpoint, headers) {
     const options = { headers };
     const response = await fetch(endpoint, options);
@@ -216,11 +234,7 @@ async function getBinary(endpoint, headers) {
     }
 }
 
-async function isReadableStream(obj) {
-    return obj instanceof stream.Stream &&
-      typeof (obj._read === 'function') &&
-      typeof (obj._readableState === 'object');
-  }
+
 async function downloadAttachment(urn,name, token) {
     try { 
         let attachment_object_key = ""
@@ -306,17 +320,21 @@ async function downloadAttachment(urn,name, token) {
   async function createIssue(containerId, payload, three_legged_token) {
     // TODO: support 'fields' param
     try {
-
     let opts = {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${three_legged_token}`
         }
     };
+    const headers = { 'Content-Type': 'application/json',
+    'Authorization': `Bearer ${three_legged_token}`
+ };
+
   
-    let url = `${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}issues`;
+    let url = `${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issues`;
    
-    const response = await axios.post(url, payload,opts, WriteTokenScopes);
+    // const response = await axios.post(url, payload,opts, WriteTokenScopes);
+    const response = await post(url, headers,payload); 
 
     
     console.log(`creating one issue in container ${containerId}`) 
@@ -346,17 +364,19 @@ async function updateIssue(containerId, issueId, payload, three_legged_token ) {
         }
     };
 
-    const headers = { 'Content-Type': 'application/vnd.api+json',
+    const headers = { 'Content-Type': 'application/json',
     'Authorization': `Bearer ${three_legged_token}`
  };
 
 
     const url = `${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issues/${encodeURIComponent(issueId)}`;
 
-    const response = await axios.patch(url,payload, opts , WriteTokenScopes);
+    // const response = await axios.patch(url,payload, opts , WriteTokenScopes);
+    const response = await patch(url, headers,payload); 
+
 
     console.log(`updating one issue in container ${containerId} successful`) 
-    return response.data 
+    return response
   } catch (e) {
     console.error(`updating one issue in container ${containerId} failed: ${e}`)
     return null
@@ -375,17 +395,44 @@ async function patch(endpoint, headers, body) {
         throw new Error(response.status+ ' ' + response.statusText + ' ' + message);
     }
 }
+async function post(endpoint, headers, body) {
+    const options = { method: 'POST', headers: headers || {}, body: body||null };
+    const response = await fetch(endpoint, options);
+    if (response.status == 200 || response.status == 201 ) {
+        const json = await response.json();
+        return json;
+    } else if (response.status == 204 ||response.status == 202 ){  //for some endpoints that delete entities
+        return true
+    }
+    else {
+        const message = await response.text();
+        throw new Error(response.status+ ' ' + response.statusText + ' ' + message);
+    }
+}
 
-async function getUserProfile(token){
-    const config = {
+
+
+async function listProjectUsers(projectId, token) {
+    const PageSize = 64;
+    console.log('Fetching BIM360 project users.');
+
+    let url = `https://developer.api.autodesk.com/bim360/admin/v1/projects/${projectId}/users?limit=${PageSize}`;
+    let opts = {
         headers: {
-            'Authorization': 'Bearer ' + token
+            'Authorization': `Bearer ${token}`
         }
     };
-    const resp = await axios.get('https://api.userprofile.autodesk.com/userinfo', config);
-  //  https://api.userprofile.autodesk.com/userinfo
-    return resp.data;
+    let response = await axios.get(url, opts,ReadTokenScopes);
+    let results = response.data.results;
+    while (response.data.pagination && response.data.pagination.nextUrl) {
+        url = response.data.pagination.nextUrl;
+        response = await axios.get(url, opts);
+        results = results.concat(response.data.results);
+    }
+    return results;
 }
+
+
 
 
 module.exports = {
@@ -395,10 +442,12 @@ module.exports = {
     listLocationNodes,
     listIssueComments,
     listIssueAttachments,
-    signeds3download,
     getBinary,
     downloadAttachment,
     createIssue,
     updateIssue,
-    getUserProfile
+    listIssueAttributeDefinitions,
+    listIssueAttributeMappings,
+    listProjectUsers
+
 };

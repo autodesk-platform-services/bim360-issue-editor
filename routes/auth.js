@@ -1,7 +1,9 @@
 const express = require('express');
 const { AuthenticationClient } = require('forge-server-utils');
 const config = require('../config');
-const bim360V2 = require('./../helpers/bim360V2');
+const OauthV2 = require('./../helpers/OauthV2');
+const WriteTokenScopes = ['data:create', 'data:write', 'data:read'];
+
 
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 let router = express.Router();
@@ -15,12 +17,14 @@ router.get('/login', function (req, res) {
 // GET /auth/callback
 router.get('/callback', async function (req, res) {
     try {
+    
         const token = await authClient.getToken(req.query.code, config.redirect_uri);
+        // const token = await axios.post(url,params, config , WriteTokenScopes);
         req.session.access_token = token.access_token;
         req.session.refresh_token = token.refresh_token;
         req.session.expires_at = Date.now() + token.expires_in * 1000;
         // const profile = await authClient.getUserProfile(req.session.access_token);
-        const profile = await bim360V2.getUserProfile(req.session.access_token);
+        const profile = await OauthV2.getUserProfile(req.session.access_token);
 
         req.session.user_name = profile.name;
         // req.session.user_email = profile.email_verified ? profile.email : '';

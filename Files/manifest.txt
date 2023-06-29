@@ -1,0 +1,118 @@
+{
+    urn: dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Z2VvcmdlLXRlc3QtYnVja2V0czIyMjIvOTk0OTc0MDQzYmFlNGVkY2I1MGFlOWViNWViM2FkNjcuZHdn
+    type: manifest
+    progress: complete
+    status: success
+    hasThumbnail: true
+    region: US
+    derivatives: [class ManifestDerivative {
+        name: 994974043bae4edcb50ae9eb5eb3ad67.dwg
+        hasThumbnail: true
+        outputType: svf
+        progress: complete
+        status: success
+        children: [class ManifestChildren {
+            type: resource
+            role: Autodesk.CloudPlatform.PropertyDatabase
+            guid: cb73c076-d3cd-a725-754f-a64cd8c07648
+            name: null
+            phaseNames: null
+            viewableID: null
+            hasThumbnail: null
+            mime: application/autodesk-db
+            urn: urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Z2VvcmdlLXRlc3QtYnVja2V0czIyMjIvOTk0OTc0MDQzYmFlNGVkY2I1MGFlOWViNWViM2FkNjcuZHdn/output/properties.db
+            progress: null
+            status: success
+            resolution: []
+            modelGUID: null
+            objectIds: []
+            messages: null
+            children: []
+        }, class ManifestChildren {
+            type: geometry
+            role: 2d
+            guid: 6882be48-6626-5238-d3df-94e9f0a0019d
+            name: 2D View
+            phaseNames: null
+            viewableID: Model
+            hasThumbnail: true
+            mime: null
+            urn: null
+            progress: complete
+            status: success
+            resolution: []
+            modelGUID: null
+            objectIds: []
+            messages: null
+            children: [class ManifestChildren {
+                type: resource
+                role: thumbnail
+                guid: 554feb94-2726-fb1a-720d-137b5684e37e
+                name: null
+                phaseNames: null
+                viewableID: null
+                hasThumbnail: null
+                mime: image/png
+                urn: urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Z2VvcmdlLXRlc3QtYnVja2V0czIyMjIvOTk0OTc0MDQzYmFlNGVkY2I1MGFlOWViNWViM2FkNjcuZHdn/output/994974043bae4edcb50ae9eb5eb3ad67-Model_100.png
+                progress: null
+                status: success
+                resolution: [100, 100]
+                modelGUID: null
+                objectIds: []
+                messages: null
+                children: []
+            }, class ManifestChildren {
+                type: resource
+                role: thumbnail
+                guid: f72c36ba-10ec-9c4b-a3f5-9e1d2af34400
+                name: null
+                phaseNames: null
+                viewableID: null
+                hasThumbnail: null
+                mime: image/png
+                urn: urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Z2VvcmdlLXRlc3QtYnVja2V0czIyMjIvOTk0OTc0MDQzYmFlNGVkY2I1MGFlOWViNWViM2FkNjcuZHdn/output/994974043bae4edcb50ae9eb5eb3ad67-Model_200.png
+                progress: null
+                status: success
+                resolution: [200, 200]
+                modelGUID: null
+                objectIds: []
+                messages: null
+                children: []
+            }, class ManifestChildren {
+                type: resource
+                role: thumbnail
+                guid: 9b843f8e-360d-175d-6f7d-5e67cbd02c5a
+                name: null
+                phaseNames: null
+                viewableID: null
+                hasThumbnail: null
+                mime: image/png
+                urn: urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Z2VvcmdlLXRlc3QtYnVja2V0czIyMjIvOTk0OTc0MDQzYmFlNGVkY2I1MGFlOWViNWViM2FkNjcuZHdn/output/994974043bae4edcb50ae9eb5eb3ad67-Model_400.png
+                progress: null
+                status: success
+                resolution: [400, 400]
+                modelGUID: null
+                objectIds: []
+                messages: null
+                children: []
+            }, class ManifestChildren {
+                type: resource
+                role: graphics
+                guid: 8b33471a-cc8c-12b0-4dfd-c43b13ea9280
+                name: null
+                phaseNames: null
+                viewableID: null
+                hasThumbnail: null
+                mime: application/autodesk-f2d
+                urn: urn:adsk.viewing:fs.file:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Z2VvcmdlLXRlc3QtYnVja2V0czIyMjIvOTk0OTc0MDQzYmFlNGVkY2I1MGFlOWViNWViM2FkNjcuZHdn/output/bd6e1b3e-eb28-a8e4-9693-ad13ff71867d_f2d/primaryGraphics.f2d
+                progress: null
+                status: success
+                resolution: []
+                modelGUID: null
+                objectIds: []
+                messages: null
+                children: []
+            }]
+        }]
+    }]
+}

@@ -14,6 +14,7 @@ const { exportIssues, importIssues } = require('../../helpers/excel');
 
 // const sayHello = require('../../helpers/hello.js');
 const bim360V2 = require('../../helpers/bim360V2');
+const { authRefreshMiddleware } = require('../oauth');
 
 mail.setApiKey(config.sendgrid_key);
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
@@ -129,6 +130,8 @@ router.get('/:issue_container', async function (req, res) {
 
 // GET /api/issues/:issue_container/export
 router.get('/:issue_container/export', async function (req, res) {
+    // config.credentials.token_3legged = req.internalOAuthToken.access_token;
+
     const { issue_container } = req.params;
     const { hub_id, region, location_container_id, project_id, offset, limit } = req.query;
     try {
@@ -155,7 +158,6 @@ router.get('/:issue_container/export-email', async function (req, res) {
     const { issue_container } = req.params;
     const { hub_id, region, location_container_id, project_id } = req.query;
     const { user_email } = req.session;
-    // const  user_email  = "carolgitonga45@gmail.com";
 
     try {
         const twoLeggedToken = await authClient.authenticate(['data:read', 'data:write', 'data:create', 'account:read']);
@@ -300,8 +302,11 @@ router.get('/:issue_container/issue-types', async function (req, res) {
 // GET /api/issues/:issue_container/attr-definitions
 router.get('/:issue_container/attr-definitions', async function (req, res) {
     const { issue_container } = req.params;
+    const token = req.bim360.token;
     try {
-        const attrDefinitions = await req.bim360.listIssueAttributeDefinitions(issue_container);
+        // const attrDefinitions = await req.bim360.listIssueAttributeDefinitions(issue_container);
+        const attrDefinitions = await bim360V2.listIssueAttributeDefinitions(issue_container, token);
+
         res.json(attrDefinitions);
     } catch (err) {
         handleError(err, res);
@@ -311,8 +316,11 @@ router.get('/:issue_container/attr-definitions', async function (req, res) {
 // GET /api/issues/:issue_container/attr-mappings
 router.get('/:issue_container/attr-mappings', async function (req, res) {
     const { issue_container } = req.params;
+    const token = req.bim360.token;
     try {
-        const attrMappings = await req.bim360.listIssueAttributeMappings(issue_container);
+        // const attrMappings = await req.bim360.listIssueAttributeMappings(issue_container);
+        const attrMappings = await bim360V2.listIssueAttributeMappings(issue_container, token);
+
         res.json(attrMappings);
     } catch (err) {
         handleError(err, res);
@@ -373,7 +381,11 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
         if (match) {
             
             const file_full_path_name = await bim360V2.downloadAttachment(match.urn, match.name, token);
-            res.download(file_full_path_name);
+            
+            res.download(file_full_path_name, match.name)
+            res.send( `File:  ${match.name} downloaded successfully on the path: ${file_full_path_name}.` );
+            
+            // res.render('message', { session: req.session, message: `The file  ${match.name} has been dowloaded on the path: ${file_full_path_name}.` });
 
         } else {
             res.status(404).end();

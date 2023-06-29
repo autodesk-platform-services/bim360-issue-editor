@@ -21,14 +21,20 @@ class IssueView {
         // Initialize issue owners and types
         this.showSpinner('Initializing issue owners and types...');
         try {
-            const [users, issueTypes, rootCauses] = await Promise.all([
+            const [users, issueTypes, rootCauses, attrs, mappings] = await Promise.all([
                 this.userClient.listUsers(),
                 this.issueClient.listIssueTypes(),
-                this.issueClient.listRootCauses()
+                this.issueClient.listRootCauses(),
+                // this.issueClient.listAttributeDefinitions(),
+                // this.issueClient.listAttributeMappings()
+
+            
             ]);
             this.users = users;
             this.issueTypes = issueTypes;
             this.rootCauses = rootCauses;
+            // const attrsDef = attrs;
+            // const attrMappings = mappings;
 
 
         } catch (err) {
@@ -92,13 +98,13 @@ class IssueView {
                     if (currentValue !== originalValue) {
                         attrs[attrName] = currentValue;
                     }
-                    console.log("orig val", originalValue, "  current val", currentValue)
                 }
                 addAttributeIfChanged('title', 'input.issue-title');
                 addAttributeIfChanged('description', 'input.issue-description');
                 addAttributeIfChanged('status', 'select.issue-status');
+                addAttributeIfChanged('locationId', 'select.issue-location');
                 addAttributeIfChanged('ownerId', 'select.issue-owner');
-                // addAttributeIfChanged('rootCauseId', 'select.root-cause');
+                addAttributeIfChanged('dueDate', 'input.issue-due-date');
                 addAttributeIfChanged('issueTypeId', 'select.issue-type');
                 addAttributeIfChanged('issueSubtypeId', 'select.issue-subtype');
                 this.issueClient.updateIssue(issueId, attrs)
@@ -251,7 +257,7 @@ class IssueView {
         }
 
         const generateIssueTypeSelect = (issue) => `
-            <select class="custom-select custom-select-sm issue-type" data-original-value="${issue.issueTypeId}" ${true ? 'disabled' : ''}>
+            <select class="custom-select custom-select-sm issue-type" data-original-value="${issue.issueTypeId}"  ${true ? 'disabled' : ''}>
                 ${this.issueTypes.map(issueType => `<option  value="${issueType.id}" ${(issueType.id === issue.issueTypeId) ? 'selected' : ''}>${escape(issueType.title)}</option>`).join('\n')}
             </select>
         `;
@@ -311,7 +317,7 @@ class IssueView {
         for (const issue of issues) {
             const title = escape(issue.title || '');
             const description = escape(issue.description || '');
-            const answer = escape(issue.answer || '')
+            const dueDate = escape(issue.dueDate || '')
             $tbody.append(`
                 <tr>
                     <td class="center">
@@ -346,7 +352,7 @@ class IssueView {
                         ${generateStatusSelect(issue)}
                     </td>
                     <td>
-                    <input type="text" class="form-control form-control-sm issue-due-date" data-due-date="${issue.dueDate}"   value="${issue.dueDate}" ${disabled('dueDate', issue) ? 'disabled' : ''}>
+                    <input type="date" class="form-control form-control-sm issue-due-date" data-due-date="${issue.dueDate}" data-original-value="${dueDate}"  value="${issue.dueDate}" ${disabled('dueDate', issue) ? 'disabled' : ''}>
                </td>
                    
                     <td class="center">
@@ -506,6 +512,7 @@ class IssueClient {
                 url.searchParams.append(key, params[key]);
             }
         }
+
         const response = await fetch(url.toString());
 
         if (response.ok) {
@@ -534,7 +541,6 @@ class IssueClient {
         });
         if (response.ok) {
             const json = await response.json();
-        console.log("patch issue response", response)
 
             return json;
         } else {

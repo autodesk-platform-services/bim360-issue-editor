@@ -33,6 +33,23 @@ async function exportIssues(opts) {
     // const appContextBIM360 = new BIM360Client({ token: two_legged_token }, undefined, region);
     const userContextBIM360 = new BIM360Client({ token: three_legged_token }, undefined, region);
        
+
+        // const issuesx = await loadIssues(three_legged_token, issue_container_id, page_offset, page_limit)
+        // console.log("eport issues", issuesx)
+        // const issueTyesx =  await loadIssueTypes(three_legged_token, issue_container_id)
+        // console.log("eport issueTypes", issueTyesx)
+        
+        // const usersxx = await loadUsers(project_id, three_legged_token)
+        // console.log("eport osers", usersxx)
+
+        // const locationsx = await loadLocations(three_legged_token, location_container_id)
+        // console.log("eport locations", locationsx)
+
+        // const doccxx = await loadDocuments(userContextBIM360, hub_id, project_id)
+        // console.log("eport docs", doccxx)
+
+
+
     const [issues, types, users, locations, documents] = await Promise.all([
         loadIssues(three_legged_token, issue_container_id, page_offset, page_limit),
         loadIssueTypes(three_legged_token, issue_container_id),
@@ -76,23 +93,11 @@ async function loadIssueTypes(three_legged_token, issueContainerID) {
 }
 
 async function loadUsers(projectId, token) {
-    const PageSize = 64;
-    console.log('Fetching BIM360 project users.');
+    // console.log('Fetching BIM360 project users.');
 
-    let url = `https://developer.api.autodesk.com/bim360/admin/v1/projects/${projectId}/users?limit=${PageSize}`;
-    let opts = {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    };
-    let response = await axios.get(url, opts);
-    let results = response.data.results;
-    while (response.data.pagination && response.data.pagination.nextUrl) {
-        url = response.data.pagination.nextUrl;
-        response = await axios.get(url, opts);
-        results = results.concat(response.data.results);
-    }
-    return results;
+    const users = await bim360V2.listProjectUsers(projectId, token)
+    
+    return users;
 }
 
 async function loadLocations(three_legged_token, locationContainerID) {
@@ -241,7 +246,8 @@ function fillIssues(worksheet, issues, types, users, locations, documents) {
 
     const IssueColumns = [
         { id: 'id',             propertyName: 'id',                     columnTitle: 'ID',          columnWidth: 8,     locked: true },
-        { id: 'type',           propertyName: 'issueSubtypeId',         columnTitle: 'Type',        columnWidth: 16,    locked: true,   format: IssueTypeFormat,        validation: IssueTypeValidation },
+        { id: 'type',           propertyName: 'issueSubtypeId',            columnTitle: 'Type',        columnWidth: 16,    locked: true,   format: IssueTypeFormat,        validation: IssueTypeValidation },
+        // { id: 'subtype',        propertyName: 'issueSubtypeId',         columnTitle: 'SubType',      columnWidth: 16,   locked: true,   format: IssueTypeFormat,        validation: IssueTypeValidation },
         { id: 'title',          propertyName: 'title',                  columnTitle: 'Title',       columnWidth: 32,    locked: false },
         { id: 'description',    propertyName: 'description',            columnTitle: 'Description', columnWidth: 32,    locked: false },
         { id: 'owner',          propertyName: 'ownerId',                columnTitle: 'Owner',       columnWidth: 16,    locked: true,   format: IssueOwnerFormat,       validation: IssueOwnerValidation },
@@ -480,19 +486,22 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
                 return;
             }
             const newIssueLocation = unrich(row.values[6]).match(/.+\[(.+)\]$/);
+
+            const newIssueDoc = unrich(row.values[7]).match(/.+\[(.+)\]$/);
             // if (!newIssueLocation) {
             //     results.failed.push({ id: issueID, error: 'Could not parse issue location ID.' });
             //     return;
+
             // }
             const newIssueAttributes = {
-                issueTypeId: newIssueTypeMatch[1],
+                // issueTypeId: newIssueTypeMatch[1],
                 issueSubtypeId: newIssueTypeMatch[2],
                 title: unrich(row.values[3]),
                 description: unrich(row.values[4]),
                 ownerId: newIssueOwner[1],
                 locationId: newIssueLocation ? newIssueLocation[1] : null,
-                //document: ...
-                status: unrich(row.values[8]),
+                
+                status: unrich(row.values[8])
                 // answer: unrich(row.values[9])
             };
 
@@ -516,14 +525,13 @@ async function importIssues(buffer, issueContainerID, threeLeggedToken, sequenti
                         delete newIssueAttributes[key];
                     } 
                     else if (currentIssueAttributes.permittedAttributes.indexOf(key) === -1) { // field change not permitted
-                        console.log("currentIssueAttributes[key] == newIssueAttributes[key] : field change not permitted", currentIssueAttributes.permitted_attributes.indexOf(key))
                         blockedAttributeUpdates.push(key);
                     }
                 }
-                // if (blockedAttributeUpdates.length > 0) {
-                //     results.failed.push({ number: issueNumber, id: issueID, error: `Changing these issue fields is not permitted: ${blockedAttributeUpdates.join(', ')}.` });
-                //     return;
-                // }
+                if (blockedAttributeUpdates.length > 0) {
+                    results.failed.push({ number: issueNumber, id: issueID, error: `Changing these issue fields is not permitted: ${blockedAttributeUpdates.join(', ')}.` });
+                    return;
+                }
                 if (Object.getOwnPropertyNames(newIssueAttributes).length === 0) {
                     return; // No fields to update
                 }
@@ -560,7 +568,7 @@ async function updateIssue(threeLeggedToken, issueContainerID, issueID, currentI
         if (blockedAttributes.length > 0) {
             const _status = currentIssueAttributes.status;
             updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, { status: 'open' }, threeLeggedToken);
-            updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, newIssueAttributes, threeLeggedToken);
+            updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, JSON.stringify(newIssueAttributes), threeLeggedToken);
             if (!newIssueAttributes.status) {
                 updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, { status: _status }, threeLeggedToken);
             }
@@ -570,7 +578,7 @@ async function updateIssue(threeLeggedToken, issueContainerID, issueID, currentI
                 issue: updatedIssue
             });
         } else {
-            const updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, newIssueAttributes, threeLeggedToken);
+            const updatedIssue = await bim360V2.updateIssue(issueContainerID, issueID, JSON.stringify(newIssueAttributes), threeLeggedToken);
             results.succeeded.push({
                 number: issueNumber,
                 id: issueID,
@@ -588,7 +596,7 @@ async function updateIssue(threeLeggedToken, issueContainerID, issueID, currentI
 
 async function createIssue(threeLeggedToken, issueContainerID, newIssueAttributes, results) {
     try { 
-        const createdIssue = await bim360V2.createIssue(issueContainerID, newIssueAttributes, threeLeggedToken);
+        const createdIssue = await bim360V2.createIssue(issueContainerID, JSON.stringify(newIssueAttributes), threeLeggedToken);
         results.succeeded.push({
             number: createdIssue.displayId,
             id: createdIssue.id,
