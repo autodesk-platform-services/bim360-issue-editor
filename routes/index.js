@@ -5,33 +5,28 @@ const config = require('../config');
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 
 const { authRefreshMiddleware } = require('./../services/aps');
+const { getUserProfile } = require('./../services/aps');
+
 let router = express.Router();
 
 // Refresh token whenever needed
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
-        if (Date.now() > req.session.expires_at) {
-            try {
-                const token = await authClient.refreshToken(config.scopes, req.session.refresh_token);
-                req.session.access_token = token.access_token;
-                req.session.refresh_token = token.refresh_token;
-                req.session.expires_at = Date.now() + token.expires_in * 1000;
-            } catch(err) {
-                res.render('error', { session: req.session, error: err });
-                return;
-            }
-        }
-        req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
+       
+        authRefreshMiddleware(req)
+         config.credentials.token_3legged = req.internalOAuthToken.access_token;
+         const profile = await getUserProfile(req.internalOAuthToken);
+
+         req.session.user_name = profile.firstName + ' ' + profile.lastName
+         req.session.user_email =  profile.emailId;
+     
+
+
+        req.bim360 = new BIM360Client({ token: req.internalOAuthToken.access_token }, undefined, req.query.region);
     }
     next();
 });
-// router.use('/', authRefreshMiddleware, async function (req, res) {
-//     if (req.internalOAuthToken) {
-//                 req.session.access_token = req.internalOAuthToken.access_token;
-//     } else {
-//         res.status(401).end();
-//     }
-// });
+
 
 router.get('/user', function (req, res, next) {
     console.log("User Router Working");

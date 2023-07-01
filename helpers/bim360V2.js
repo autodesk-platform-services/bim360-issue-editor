@@ -16,7 +16,6 @@ const PageSize = 64;
 
 async function listIssuesV2(containerId, three_legged_token,  filter, page){
    
-    const headers = { 'Content-Type': 'application/vnd.api+json' };
     let opts = {
         headers: {
             'Authorization': `Bearer ${three_legged_token}`
@@ -151,7 +150,6 @@ async function listIssueComments(containerId, issueId, three_legged_token, page)
    
     const PageSize = 64;
     // TODO: support 'filter', 'include', or 'fields' params
-    const headers = { 'Content-Type': 'application/vnd.api+json' };
     let opts = {
         headers: {
             'Authorization': `Bearer ${three_legged_token}`
@@ -294,7 +292,6 @@ async function downloadAttachment(urn,name, token) {
        
         let opts = {
             headers: {
-                // 'Content-Type': 'application/vnd.api+json',
                 'Authorization': `Bearer ${three_legged_token}`
             }
         };

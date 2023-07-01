@@ -31,7 +31,6 @@ async function exportIssues(opts) {
     } = opts;
     const userContextBIM360 = new BIM360Client({ token: three_legged_token }, undefined, region);
     
-
        
     const [issues, types, users, locations, documents] = await Promise.all([
         loadIssues(three_legged_token, issue_container_id, page_offset, page_limit),

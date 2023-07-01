@@ -40,18 +40,11 @@ router.use(express.json());
 
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
-        if (Date.now() > req.session.expires_at) {
-            try {
-                const token = await authClient.refreshToken(config.scopes, req.session.refresh_token);
-                req.session.access_token = token.access_token;
-                req.session.refresh_token = token.refresh_token;
-                req.session.expires_at = Date.now() + token.expires_in * 1000;
-            } catch(err) {
-                res.render('error', { session: req.session, error: err });
-                return;
-            }
-        }
-        req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
+      
+        authRefreshMiddleware(req)
+        config.credentials.token_3legged = req.internalOAuthToken.access_token;
+    
+       req.bim360 = new BIM360Client({ token: req.internalOAuthToken.access_token }, undefined, req.query.region);
     }
     next();
 });
@@ -93,7 +86,6 @@ router.get('/:issue_container', async function (req, res) {
             filter.linkedDocumentUrn = req.query.linkedDocumentUrn;
         }
         if (req.query.dueDate) {
-            // filter.dueDate = new Date(req.query.dueDate);
             filter.dueDate = req.query.dueDate;
 
         }
@@ -125,7 +117,6 @@ router.get('/:issue_container', async function (req, res) {
 
 // GET /api/issues/:issue_container/export
 router.get('/:issue_container/export', async function (req, res) {
-    // config.credentials.token_3legged = req.internalOAuthToken.access_token;
 
     const { issue_container } = req.params;
     const { hub_id, region, location_container_id, project_id, offset, limit } = req.query;
@@ -213,13 +204,8 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
         // Get a fresh 2-legged token as well
         const twoLeggedToken = await authClient.authenticate(['data:read', 'data:write', 'data:create', 'account:read']);
         // Refresh the 3-legged token to make sure the user gets one "as fresh as possible"
-        console.log("config", config, "config-scopes",config.scopes, "session", req.session.refresh_token)
-        const token = await authClient.refreshToken(config.scopes, req.session.refresh_token);
-        req.session.access_token = token.access_token;
-        req.session.refresh_token = token.refresh_token;
-        req.session.expires_at = Date.now() + token.expires_in * 1000;
-
-        
+     
+        authRefreshMiddleware(req)
 
         // Pack everything into a password-protected zip
         const cfg = JSON.stringify({
@@ -233,6 +219,7 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
             location_container_id: location_container_id,
             project_id: project_id
         }, null, 4);
+
         const tmpDir = path.resolve(os.tmpdir(), issue_container);
         const jsonPath = path.join(tmpDir, 'config.json');
         const zipPath = path.join(tmpDir, 'config.zip');
@@ -240,11 +227,11 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
             fs.mkdirSync(tmpDir);
         }
         fs.writeFileSync(jsonPath, cfg);
-
+        const password = process.env.CLI_CONFIG_PASSWORD
         const zip = spawn('zip', ['-P', process.env.CLI_CONFIG_PASSWORD, 'config.zip', 'config.json'], { cwd: tmpDir });
-        
 
-        zip.on('exit', function (code) {
+        zip.on('exit', function(code){
+            console.log(`Child exited with code ${code}`);
             if (code !== 0) {
                 handleError('Could not compress the config file.', res);
                 return;

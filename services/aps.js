@@ -12,6 +12,7 @@ service.getAuthorizationUrl = () => internalAuthClient.generateAuthUrl();
 service.authCallbackMiddleware = async (req, res, next) => {
     const internalCredentials = await internalAuthClient.getToken(req.query.code);
     const publicCredentials = await publicAuthClient.refreshToken(internalCredentials);
+    req.session.internal_token = publicCredentials.access_token;
     req.session.public_token = publicCredentials.access_token;
     req.session.access_token = internalCredentials.access_token;
     req.session.refresh_token = publicCredentials.refresh_token;
@@ -48,11 +49,14 @@ service.authRefreshMiddleware = async (req, res, next) => {
         access_token: req.session.public_token,
         expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
     };
-    next();
+    // next();
 };
 
 service.getUserProfile = async (token) => {
     const resp = await new APS.UserProfileApi().getUserProfile(internalAuthClient, token);
-    console.log("userprofilebody", resp.body)
     return resp.body;
+};
+service.getHubs = async (token) => {
+    const resp = await new APS.HubsApi().getHubs(null, internalAuthClient, token);
+    return resp.body.data;
 };
