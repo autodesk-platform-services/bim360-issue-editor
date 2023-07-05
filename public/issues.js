@@ -21,7 +21,7 @@ class IssueView {
         // Initialize issue owners and types
         this.showSpinner('Initializing issue owners and types...');
         try {
-            const [users, issueTypes, rootCauses, attrs, mappings] = await Promise.all([
+            const [users, issueTypes, rootCauses] = await Promise.all([
                 this.userClient.listUsers(),
                 this.issueClient.listIssueTypes(),
                 this.issueClient.listRootCauses(),

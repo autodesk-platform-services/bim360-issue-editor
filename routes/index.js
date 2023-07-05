@@ -12,21 +12,17 @@ let router = express.Router();
 // Refresh token whenever needed
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
-       
+      try{
         authRefreshMiddleware(req)
-         config.credentials.token_3legged = req.internalOAuthToken.access_token;
-         const profile = await getUserProfile(req.internalOAuthToken);
-
-         req.session.user_name = profile.firstName + ' ' + profile.lastName
-         req.session.user_email =  profile.emailId;
-     
-
-
-        req.bim360 = new BIM360Client({ token: req.internalOAuthToken.access_token }, undefined, req.query.region);
+    
+       req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
+      }catch (err) {
+        next(err);
+      }
+        
     }
     next();
 });
-
 
 router.get('/user', function (req, res, next) {
     console.log("User Router Working");

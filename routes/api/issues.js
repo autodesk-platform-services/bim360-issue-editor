@@ -15,6 +15,8 @@ const { exportIssues, importIssues } = require('../../helpers/excel');
 const bim360V2 = require('../../helpers/bim360V2');
 const { authRefreshMiddleware } = require('../../services/aps');
 const { getUserProfile } = require('../../services/aps');
+const base_url = 'https://developer.api.autodesk.com';
+
 
 
 
@@ -40,15 +42,17 @@ router.use(express.json());
 
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
-      
+      try{
         authRefreshMiddleware(req)
-        config.credentials.token_3legged = req.internalOAuthToken.access_token;
     
-       req.bim360 = new BIM360Client({ token: req.internalOAuthToken.access_token }, undefined, req.query.region);
+       req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
+      }catch (err) {
+        next(err);
+      }
+        
     }
     next();
 });
-
 
 
 router.get('/:issue_container', async function (req, res) {
@@ -153,7 +157,6 @@ router.get('/:issue_container/export-email', async function (req, res) {
                 location_container_id: location_container_id,
                 project_id: project_id
             }).then(excel => {
-                mail.setApiKey(process.env.SENDGRID_API_KEY);
                 const msg = {
                     to: user_email,
                     from: 'petr.broz@autodesk.com',
@@ -207,6 +210,7 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
      
         authRefreshMiddleware(req)
 
+    
         // Pack everything into a password-protected zip
         const cfg = JSON.stringify({
             created_at: new Date().toISOString(),
@@ -347,7 +351,8 @@ router.get('/:issue_container/:issue/attachments', async function (req, res) {
     }
 });
 
-// GET /api/issues/:issue_container/:issue/attachments/:id
+
+
 router.get('/:issue_container/:issue/attachments/:id', async function (req, res) {
     const { issue_container, issue, id } = req.params;
     const token = req.bim360.token;
@@ -356,16 +361,29 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
         const attachments = await bim360V2.listIssueAttachments(issue_container, issue, token);
 
 
+        
         const match = attachments.find(attachment => attachment.id === id);
         if (match) {
-            
-            const file_full_path_name = await bim360V2.downloadAttachment(match.urn, match.name, token);
-            
-            res.download(file_full_path_name, match.name)
-            res.send( `File:  ${match.name} downloaded successfully on the path: ${file_full_path_name}.` );
-            
-            // res.render('message', { session: req.session, message: `The file  ${match.name} has been dowloaded on the path: ${file_full_path_name}.` });
+            const options = {
+                responseType: 'arraybuffer',
+                headers: {
+                    'Authorization': 'Bearer ' + req.session.access_token
+                }
+            };
 
+             //extract bucket key and object key of oss object
+
+            var split_by_splash = match.urn.split("/") 
+      
+            var split_by_colon = split_by_splash[0].split(":")
+           attachment_object_key = split_by_splash[1]
+           attachment_bucket_key = split_by_colon[3] 
+            const url = `${base_url}/oss/v2/buckets/${encodeURIComponent(attachment_bucket_key)}/objects/${encodeURIComponent(attachment_object_key)}`;
+           
+          
+            const response = await axios.get(url, options);
+            const extension = url.substr(url.lastIndexOf('.'));
+            res.type(extension).send(response.data);
         } else {
             res.status(404).end();
         }

@@ -438,6 +438,11 @@ async function getUserProfile(token){
     return resp.data;
 }
 
+const BasicAuthorization = function (clientId, clientSecret) {
+    let basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    return (`Basic ${basic}`);
+};
+
 
 
 
