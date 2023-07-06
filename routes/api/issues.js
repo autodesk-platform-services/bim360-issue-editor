@@ -352,7 +352,6 @@ router.get('/:issue_container/:issue/attachments', async function (req, res) {
 });
 
 
-
 router.get('/:issue_container/:issue/attachments/:id', async function (req, res) {
     const { issue_container, issue, id } = req.params;
     const token = req.bim360.token;
@@ -361,31 +360,30 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
         const attachments = await bim360V2.listIssueAttachments(issue_container, issue, token);
 
 
-        
         const match = attachments.find(attachment => attachment.id === id);
         if (match) {
-            const options = {
-                responseType: 'arraybuffer',
-                headers: {
-                    'Authorization': 'Bearer ' + req.session.access_token
-                }
-            };
-
-             //extract bucket key and object key of oss object
-
-            var split_by_splash = match.urn.split("/") 
-      
-            var split_by_colon = split_by_splash[0].split(":")
-           attachment_object_key = split_by_splash[1]
-           attachment_bucket_key = split_by_colon[3] 
-            const url = `${base_url}/oss/v2/buckets/${encodeURIComponent(attachment_bucket_key)}/objects/${encodeURIComponent(attachment_object_key)}`;
+           
            
           
-            const response = await axios.get(url, options);
-            const extension = url.substr(url.lastIndexOf('.'));
-            res.type(extension).send(response.data);
+            const file_full_path_name = await bim360V2.downloadAttachment(match.urn, match.name, token);
+
+            const readableStream = fs.createReadStream(file_full_path_name);
+
+            const extension = match.urn.substr(match.urn.lastIndexOf('.'));
+
+
+            readableStream.on('error', function (error) {
+                console.log(`error on previewing the file: ${error.message}`);
+            })
+        
+            readableStream.on('open', ()=> {
+                  
+                readableStream.pipe(res.type(extension))
+            })
+
         } else {
-            res.status(404).end();
+            console.log("Error while previewing the file")
+           return res.status(404).end();
         }
     } catch (err) {
         handleError(err, res);

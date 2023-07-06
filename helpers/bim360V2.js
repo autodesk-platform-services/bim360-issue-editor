@@ -235,41 +235,23 @@ async function getBinary(endpoint, headers) {
 
 async function downloadAttachment(urn,name, token) {
     try { 
-        let attachment_object_key = ""
-        let attachment_bucket_key = ""
-       
-      //extract bucket key and object key of oss object
-      var split_by_splash = urn.split("/") 
-      if(split_by_splash.length == 1){
+//Extract bucket and object key from urn
+        var split_by_splash = urn.split("/") 
         var split_by_colon = split_by_splash[0].split(":")
-        var length = split_by_colon.length
-
-        attachment_object_key = split_by_colon[length - 1]
-        attachment_bucket_key = split_by_colon[length - 2] 
-      }else{
-        var split_by_colon = split_by_splash[0].split(":")
-       attachment_object_key = split_by_splash[1]
-       attachment_bucket_key = split_by_colon[3] 
-      }
-      
-  
+        attachment_object_key = split_by_splash[1]
+        attachment_bucket_key = split_by_colon[3] 
       //Generate a signed S3 URL
       const res = await getS3SignedDownloadUrl(attachment_bucket_key,attachment_object_key, token)
       const s3_download_url = res.data.url 
-      const rootDir = process.cwd();
-      let filename = "receipts.pdf"
-      const file_full_path_name = path.join(rootDir,'Files', name) 
-    // const file_full_path_name = path.join(rootDir,'Files', filename) 
+      const rootDir = path.resolve(process.cwd(),'Files');
 
-      
-      const input_file_path_name = path.join(rootDir,'Files/Input', filename) 
-
-
-    //   const fileStream = fs.WriteStream(file_full_path_name);
+      if (!fs.existsSync(rootDir)) {
+        fs.mkdirSync(rootDir);
+    }
+      const file_full_path_name = path.join(rootDir, name) 
+   
     const fileStream = fs.createWriteStream(file_full_path_name);
     const body = await getBinary(s3_download_url) 
-
-
 
     await new Promise((resolve, reject) => {
       body.pipe(fileStream);
@@ -282,7 +264,7 @@ async function downloadAttachment(urn,name, token) {
   
   
     }catch (e) {
-      console.error(`download attachment for urn = ${urn} failed: ${e}`)
+      console.error(`download attachment failed: ${e}`)
       return null
     }
   }
@@ -296,10 +278,8 @@ async function downloadAttachment(urn,name, token) {
             }
         };
         
-    const endpoint = `${base_url}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3download`;
+        const endpoint = `${base_url}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3download`;
 
-  
-     
       const response = await axios.get(endpoint, opts);
   
       if (response) {
@@ -438,10 +418,6 @@ async function getUserProfile(token){
     return resp.data;
 }
 
-const BasicAuthorization = function (clientId, clientSecret) {
-    let basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    return (`Basic ${basic}`);
-};
 
 
 
