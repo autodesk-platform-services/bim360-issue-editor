@@ -4,8 +4,10 @@ const config = require('../config');
 
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 
-const { authRefreshMiddleware } = require('./../services/aps');
-const { getUserProfile } = require('./../services/aps');
+const { authRefreshMiddleware, getHubs } = require('./../services/aps');
+
+
+
 
 let router = express.Router();
 

@@ -2,6 +2,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const spawn = require('child_process').spawn;
+const which = require('which');
+var zip = new require('node-zip')()
 const express = require('express');
 const { AuthenticationClient, BIM360Client } = require('forge-server-utils');
 const axios = require('axios').default;
@@ -25,7 +27,6 @@ let authClient = new AuthenticationClient(config.client_id, config.client_secret
 let router = express.Router();
 
 function handleError(err, res) {
-    console.error("error",err);
     if (err.isAxiosError) {
         const json = { message: err.message };
         if (err.response.data) {
@@ -231,13 +232,16 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
             fs.mkdirSync(tmpDir);
         }
         fs.writeFileSync(jsonPath, cfg);
-        const password = process.env.CLI_CONFIG_PASSWORD
-        const zip = spawn('zip', ['-P', process.env.CLI_CONFIG_PASSWORD, 'config.zip', 'config.json'], { cwd: tmpDir });
+
+        const zip = spawn('7z', ['-P', process.env.CLI_CONFIG_PASSWORD, 'config.zip', 'config.json'], { cwd: tmpDir })
+        .on('error', function( err ){ console.log("error on spawn", err) });;
+   
 
         zip.on('exit', function(code){
             console.log(`Child exited with code ${code}`);
             if (code !== 0) {
-                handleError('Could not compress the config file.', res);
+                // handleError('Could not compress the config file.', console.log("res",res));
+                console.log("Could not compress the file.")
                 return;
             }
             res.sendFile(zipPath, function (err) {
@@ -380,6 +384,13 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
                   
                 readableStream.pipe(res.type(extension))
             })
+            // res.sendFile(file_full_path_name, function (err) {
+            //     if (err) {
+            //         handleError(err, res);
+            //     }
+            //     fs.unlinkSync(file_full_path_name);
+            //     // fs.unlinkSync(zipPath);
+            // });
 
         } else {
             console.log("Error while previewing the file")
