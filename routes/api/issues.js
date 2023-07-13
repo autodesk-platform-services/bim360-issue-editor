@@ -10,6 +10,7 @@ const axios = require('axios').default;
 const multer = require('multer');
 const mail = require('@sendgrid/mail');
 const upload = multer({ dest: 'uploads/' });
+var AdmZip = require("adm-zip");
 
 const config = require('../../config');
 const { exportIssues, importIssues } = require('../../helpers/excel');
@@ -233,25 +234,28 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
         }
         fs.writeFileSync(jsonPath, cfg);
 
-        const zip = spawn('7z', ['-P', process.env.CLI_CONFIG_PASSWORD, 'config.zip', 'config.json'], { cwd: tmpDir })
-        .on('error', function( err ){ console.log("error on spawn", err) });;
-   
+        // creating archives
+        var zip = new AdmZip();
+       
+        // add local file
+        zip.addLocalFile(jsonPath);
+        
+        // or write everything to disk
+        zip.writeZip(zipPath);
+        // console.log("tempDir", zipPath)
 
-        zip.on('exit', function(code){
-            console.log(`Child exited with code ${code}`);
-            if (code !== 0) {
-                // handleError('Could not compress the config file.', console.log("res",res));
-                console.log("Could not compress the file.")
+        if (!fs.existsSync(zipPath)) {
+            console.log("Could not compress the file.")
                 return;
-            }
-            res.sendFile(zipPath, function (err) {
-                if (err) {
-                    handleError(err, res);
-                }
-                fs.unlinkSync(jsonPath);
-                fs.unlinkSync(zipPath);
-            });
-        });
+        }
+        res.sendFile(zipPath, function (err) {
+                    if (err) {
+                        handleError(err, res);
+                    }
+                    fs.unlinkSync(jsonPath);
+                    fs.unlinkSync(zipPath);
+                });
+
     } catch (err) {
         handleError(err, res);
     }
@@ -263,7 +267,6 @@ router.get('/:issue_container/root-causes', async function (req, res) {
     const token = req.bim360.token;
 
     try {
-        // const rootCauses = await req.bim360.listIssueRootCauses(issue_container);
          const rootCauses = await bim360V2.listIssueRootCauses(issue_container, token, true);
 
         res.json(rootCauses);
@@ -278,7 +281,6 @@ router.get('/:issue_container/issue-types', async function (req, res) {
     const token = req.bim360.token;
     try {
         const issueTypes = await bim360V2.listIssueTypesV2(issue_container, token,true);
-        // const issueTypes = await req.bim360.listIssueTypes(issue_container, true);
 
         res.json(issueTypes);
     } catch (err) {
@@ -291,7 +293,6 @@ router.get('/:issue_container/attr-definitions', async function (req, res) {
     const { issue_container } = req.params;
     const token = req.bim360.token;
     try {
-        // const attrDefinitions = await req.bim360.listIssueAttributeDefinitions(issue_container);
         const attrDefinitions = await bim360V2.listIssueAttributeDefinitions(issue_container, token);
 
         res.json(attrDefinitions);
@@ -305,7 +306,6 @@ router.get('/:issue_container/attr-mappings', async function (req, res) {
     const { issue_container } = req.params;
     const token = req.bim360.token;
     try {
-        // const attrMappings = await req.bim360.listIssueAttributeMappings(issue_container);
         const attrMappings = await bim360V2.listIssueAttributeMappings(issue_container, token);
 
         res.json(attrMappings);
@@ -384,13 +384,7 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
                   
                 readableStream.pipe(res.type(extension))
             })
-            // res.sendFile(file_full_path_name, function (err) {
-            //     if (err) {
-            //         handleError(err, res);
-            //     }
-            //     fs.unlinkSync(file_full_path_name);
-            //     // fs.unlinkSync(zipPath);
-            // });
+           
 
         } else {
             console.log("Error while previewing the file")

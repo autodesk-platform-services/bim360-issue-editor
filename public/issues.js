@@ -26,8 +26,6 @@ class IssueView {
                 this.issueClient.listIssueTypes(),
                 this.issueClient.listRootCauses(),
               
-
-            
             ]);
             this.users = users;
             this.issueTypes = issueTypes;
