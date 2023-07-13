@@ -297,12 +297,7 @@ async function downloadAttachment(urn,name, token) {
   async function createIssue(containerId, payload, three_legged_token) {
     // TODO: support 'fields' param
     try {
-    let opts = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${three_legged_token}`
-        }
-    };
+   
     const headers = { 'Content-Type': 'application/json',
     'Authorization': `Bearer ${three_legged_token}`
  };
@@ -333,13 +328,6 @@ async function downloadAttachment(urn,name, token) {
  */
 async function updateIssue(containerId, issueId, payload, three_legged_token ) {
     try{
-
-    let opts = {
-        headers: {
-            'Authorization': `Bearer ${three_legged_token}`,
-            'Content-Type': 'application/json',
-        }
-    };
 
     const headers = { 'Content-Type': 'application/json',
     'Authorization': `Bearer ${three_legged_token}`
@@ -418,6 +406,33 @@ async function getUserProfile(token){
     return resp.data;
 }
 
+async function basicAuthorization(clientId, clientSecret) {
+    let basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    return (`Basic ${basic}`);
+};
+
+async function refreshToken(clientId, clientSecret, refreshToken)
+{
+    let url = 'https://developer.api.autodesk.com/authentication/v2/token'
+
+    
+        const headers= {
+            'Authorization': await basicAuthorization(clientId, clientSecret),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    
+
+    const body = {
+        'grant_type': 'refresh_token',
+        'refresh_token': refreshToken,
+    }
+
+    const response = await post(url, headers,JSON.stringify(body)); 
+
+    console.log(`token refresh successful`, response) 
+    return response
+
+}
 
 
 
@@ -437,6 +452,7 @@ module.exports = {
     listIssueAttributeDefinitions,
     listIssueAttributeMappings,
     listProjectUsers,
-    getUserProfile
-
+    getUserProfile,
+    basicAuthorization,
+    refreshToken
 };

@@ -33,8 +33,10 @@ service.authRefreshMiddleware = async (req, res, next) => {
         res.status(401).end();
         return;
     }
-
+    expires_at = Date.now() - 1000
     if (expires_at < Date.now()) {
+        // const token = await bim360V2.refreshToken(client_id, client_secret, refresh_token)
+
         const internalCredentials = await internalAuthClient.refreshToken({ refresh_token });
         const publicCredentials = await publicAuthClient.refreshToken(internalCredentials);
         req.session.public_token = publicCredentials.access_token;
