@@ -15,21 +15,26 @@ class IssueView {
         this.users = [];
         this.issueTypes = [];
         this.locations = [];
+        this.rootCauses = [];
     }
 
     async init() {
         // Initialize issue owners and types
         this.showSpinner('Initializing issue owners and types...');
         try {
-            const [users, issueTypes, rootCauses] = await Promise.all([
+            const [users, issueTypes] = await Promise.all([
                 this.userClient.listUsers(),
                 this.issueClient.listIssueTypes(),
-                this.issueClient.listRootCauses(),
+
               
             ]);
+            const rootCauses = await this.issueClient.listRootCauses()
+            
+
             this.users = users;
             this.issueTypes = issueTypes;
             this.rootCauses = rootCauses;
+
            
 
 
@@ -407,10 +412,12 @@ class IssueView {
         // Enable comments/attachments popovers where needed
         const issueClient = this.issueClient;
         $tbody.find('button.issue-comments').each(async function () {
-            const $this = $(this);
+            let $this = $(this);
             const issueId = $this.data('issue-id');
             try {
                 const comments = await issueClient.listIssueComments(issueId);
+            // console.log('attachments', attachments, 'comments',comments )
+
                 const html = `
                     <ul>
                         ${comments.map(comment => `<li>
@@ -439,10 +446,11 @@ class IssueView {
         });
         const issueContainerId = this.issueClient.issueContainerId;
         $tbody.find('button.issue-attachments').each(async function () {
-            const $this = $(this);
+            let $this = $(this);
             const issueId = $this.data('issue-id');
+            
             try {
-                const attachments = await issueClient.listIssueAttachments(issueId);
+            const attachments  = await issueClient.listIssueAttachments(issueId);
                 const html = `
                     <ul>
                         ${attachments.map(attachment => `
@@ -461,9 +469,11 @@ class IssueView {
                     </ul>
                 `;
                 $this.attr('data-content', html);
-            } catch(err) {
+            } 
+            catch(err) {
                 $this.attr('data-content', `Could not load attachments: ${err}`);
-            } finally {
+            }
+             finally {
                 $this.popover({ html: true, trigger: 'manual' })
                     .on('mouseenter', function () {
                         const _this = this;
@@ -508,7 +518,6 @@ class IssueClient {
                 url.searchParams.append(key, params[key]);
             }
         }
-
         const response = await fetch(url.toString());
 
         if (response.ok) {
@@ -568,6 +577,7 @@ class IssueClient {
     }
 
     async listIssueAttachments(issueId, offset = null, limit = null) {
+        console.log('checking attachment endpoint')
         return this._get(`/${issueId}/attachments`, { offset, limit });
     }
 

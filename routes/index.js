@@ -15,12 +15,13 @@ let router = express.Router();
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
       try{
-        authRefreshMiddleware(req)
+        await authRefreshMiddleware(req)
     
-       req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
       }catch (err) {
-        next(err);
+        res.render('error', { session: req.session, error: err });
+        return;
       }
+       req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
         
     }
     next();
