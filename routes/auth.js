@@ -1,40 +1,48 @@
 const express = require('express');
-const { AuthenticationClient } = require('forge-server-utils');
-const config = require('../config');
+const { getAuthorizationUrl, authCallbackMiddleware, authRefreshMiddleware, getUserProfile } = require('../services/aps.js');
 
-let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 let router = express.Router();
 
-// GET /auth/login
+
+// GET /api/auth/login
+// router.get('/api/auth/login', function (req, res) {
+//     res.redirect(getAuthorizationUrl());
+// });
+
 router.get('/login', function (req, res) {
-    const url = authClient.getAuthorizeRedirect(config.scopes, config.redirect_uri);
+    const url = getAuthorizationUrl();
+
     res.redirect(url);
 });
 
-// GET /auth/callback
-router.get('/callback', async function (req, res) {
-    try {
-        const token = await authClient.getToken(req.query.code, config.redirect_uri);
-        req.session.access_token = token.access_token;
-        req.session.refresh_token = token.refresh_token;
-        req.session.expires_at = Date.now() + token.expires_in * 1000;
-        const profile = await authClient.getUserProfile(req.session.access_token);
-        req.session.user_name = profile.userName;
-        req.session.user_email = profile.emailVerified ? profile.emailId : '';
-        res.redirect('/');
-    } catch(err) {
-        res.status(400).json(err);
-    }
+router.get('/logout', function (req, res) {
+    req.session = null;
+    res.redirect('/');
 });
 
-// GET /auth/logout
-router.get('/logout', function (req, res) {
-    delete req.session.access_token;
-    delete req.session.refresh_token;
-    delete req.session.expires_at;
-    delete req.session.user_name;
-    delete req.session.user_email;
+router.get('/callback', authCallbackMiddleware, function (req, res) {
+    try {
     res.redirect('/');
+} catch (err) {
+    next(err);
+  }
+
+});
+
+
+router.get('/api/auth/token', authRefreshMiddleware, function (req, res) {
+    res.json(req.publicOAuthToken);
+});
+
+router.get('/api/auth/profile', authRefreshMiddleware, async function (req, res, next) {
+    try {
+        const profile = await getUserProfile(req.internalOAuthToken);
+        console.log("usser dets", profile)
+       
+        res.json({ name: `${profile.firstName} ${profile.lastName}` });
+    } catch (err) {
+        next(err);
+    }
 });
 
 module.exports = router;

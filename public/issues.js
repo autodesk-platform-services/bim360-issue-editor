@@ -1,6 +1,8 @@
+
 function escape(str) {
     return $('<div>').text(str).html();
 }
+
 
 class IssueView {
     constructor(userClient, issueClient, locationClient, docsClient) {
@@ -13,6 +15,7 @@ class IssueView {
         this.users = [];
         this.issueTypes = [];
         this.locations = [];
+        this.rootCauses = [];
     }
 
     async init() {
@@ -22,9 +25,19 @@ class IssueView {
             const [users, issueTypes] = await Promise.all([
                 this.userClient.listUsers(),
                 this.issueClient.listIssueTypes(),
+
+              
             ]);
+            const rootCauses = await this.issueClient.listRootCauses()
+            
+
             this.users = users;
             this.issueTypes = issueTypes;
+            this.rootCauses = rootCauses;
+
+           
+
+
         } catch (err) {
             this.hideSpinner();
             $.notify('Could not initialize issues.\nSee console for more details.', 'error');
@@ -90,10 +103,11 @@ class IssueView {
                 addAttributeIfChanged('title', 'input.issue-title');
                 addAttributeIfChanged('description', 'input.issue-description');
                 addAttributeIfChanged('status', 'select.issue-status');
-                addAttributeIfChanged('owner', 'select.issue-owner');
-                addAttributeIfChanged('answer', 'input.issue-answer');
-                addAttributeIfChanged('ng_issue_type_id', 'select.issue-type');
-                addAttributeIfChanged('ng_issue_subtype_id', 'select.issue-subtype');
+                addAttributeIfChanged('locationId', 'select.issue-location');
+                addAttributeIfChanged('ownerId', 'select.issue-owner');
+                addAttributeIfChanged('dueDate', 'input.issue-due-date');
+                addAttributeIfChanged('issueTypeId', 'select.issue-type');
+                addAttributeIfChanged('issueSubtypeId', 'select.issue-subtype');
                 this.issueClient.updateIssue(issueId, attrs)
                     .then(function (issue) {
                         $target.closest('button').attr('disabled', true);
@@ -135,6 +149,7 @@ class IssueView {
                 });
                 if (response.ok) {
                     const results = await response.json();
+                    console.log("import console resp", results)
                     if (results.failed && results.failed.length > 0) {
                         $.notify('Issues partially imported.\nSee console for more details.', 'warn');
                         console.log('Issues partially imported.', results);
@@ -221,15 +236,17 @@ class IssueView {
         this.showSpinner('Updating issues...');
 
         // Get issues based on the current filters
+       
         let issues = [];
         try {
-            const issueIdentifier = $('#issue-num-picker').val();
+            const issueDisplayId= $('#issue-num-picker').val();
             const issueOwner = $('#owner-picker').val();
             const createdBy = $('#creator-picker').val();
             const issueType = $('#issue-type-picker').val();
             const issueSubtype = $('#issue-subtype-picker').val();
             const dueDate = $('#due-date-picker').val();
-            issues = await this.issueClient.listIssues(issueIdentifier || null, issueOwner || null, createdBy || null, dueDate || null, issueType || null, issueSubtype || null, this.page * this.pageSize, this.pageSize);
+            issues = await this.issueClient.listIssues(issueDisplayId || null, issueOwner || null, createdBy || null, dueDate || null, issueType || null, issueSubtype || null, this.page * this.pageSize, this.pageSize);
+           
         } catch (err) {
             $container.append(`<div class="alert alert-dismissible alert-warning">${err}</div>`);
         } finally {
@@ -237,33 +254,40 @@ class IssueView {
         }
 
         function disabled(attribute, issue) {
-            return issue.permitted_attributes.indexOf(attribute) === -1;
+            return issue.permittedAttributes.indexOf(attribute) === -1;
         }
 
         const generateIssueTypeSelect = (issue) => `
-            <select class="custom-select custom-select-sm issue-type" data-original-value="${issue.ng_issue_type_id}" ${disabled('ng_issue_type_id', issue) ? 'disabled' : ''}>
-                ${this.issueTypes.map(issueType => `<option value="${issueType.id}" ${(issueType.id === issue.ng_issue_type_id) ? 'selected' : ''}>${escape(issueType.title)}</option>`).join('\n')}
+            <select class="custom-select custom-select-sm issue-type" data-original-value="${issue.issueTypeId}"  ${true ? 'disabled' : ''}>
+                ${this.issueTypes.map(issueType => `<option  value="${issueType.id}" ${(issueType.id === issue.issueTypeId) ? 'selected' : ''}>${escape(issueType.title)}</option>`).join('\n')}
             </select>
         `;
 
+        const generateRootCauseSelect = (issue) => `
+            <select class="custom-select custom-select-sm root-cause" data-original-value="${issue.rootCauseId}" ${true ? 'disabled' : ''}>
+                ${this.rootCauses.map(rootCause => `<option value="${rootCause.id}" ${(rootCause.id === issue.rootCauseId) ? 'selected' : ''}>${escape(rootCause.title)}</option>`).join('\n')}
+            </select>
+        `;
+
+        
         const generateIssueSubtypeSelect = (issue) => {
-            const issueType = this.issueTypes.find(it => it.id === issue.ng_issue_type_id);
+            const issueType = this.issueTypes.find(it => it.id === issue.issueTypeId);
             const issueSubtypes = issueType ? issueType.subtypes : [];
             return `
-                <select class="custom-select custom-select-sm issue-subtype" data-original-value="${issue.ng_issue_subtype_id}" ${disabled('ng_issue_subtype_id', issue) ? 'disabled' : ''}>
-                    ${issueSubtypes.map(issueSubtype => `<option value="${issueSubtype.id}" ${(issueSubtype.id === issue.ng_issue_subtype_id) ? 'selected' : ''}>${escape(issueSubtype.title)}</option>`).join('\n')}
+                <select class="custom-select custom-select-sm issue-subtype" data-original-value="${issue.issueSubtypeId}" ${disabled('issueSubtypeId', issue) ? 'disabled' : ''}>
+                    ${issueSubtypes.map(issueSubtype => `<option value="${issueSubtype.id}" ${(issueSubtype.id === issue.issueSubtypeId) ? 'selected' : ''}>${escape(issueSubtype.title)}</option>`).join('\n')}
                 </select>
             `;
         };
 
         const generateOwnerSelect = (issue) => `
-            <select class="custom-select custom-select-sm issue-owner" data-original-value="${escape(issue.owner)}" ${disabled('owner', issue) ? 'disabled' : ''}>
-                ${this.users.map(user => `<option value="${user.autodeskId}" ${(user.autodeskId === issue.owner) ? 'selected' : ''}>${escape(user.name)}</option>`).join('\n')}
+            <select class="custom-select custom-select-sm issue-owner" data-original-value="${escape(issue.ownerId)}" ${disabled('ownerId', issue) ? 'disabled' : ''}>
+                ${this.users.map(user => `<option value="${user.autodeskId}" ${(user.autodeskId === issue.ownerId) ? 'selected' : ''}>${escape(user.name)}</option>`).join('\n')}
             </select>
         `;
 
         const generateLocationSelect = (issue) => `
-            <select class="custom-select custom-select-sm issue-location" data-original-value="${issue.lbs_location}" ${this.locations.length === 0 ? 'style="display:none"' : ''} ${disabled('lbs_location', issue) ? 'disabled' : ''}>
+            <select class="custom-select custom-select-sm issue-location" data-original-value="${issue.locationId}" ${this.locations.length === 0 ? 'style="display:none"' : ''} ${disabled('locationId', issue) ? 'disabled' : ''}>
                 <option value=""></option>
                 ${this.locations.map(location => {
                     let name = location.name;
@@ -273,12 +297,15 @@ class IssueView {
                         name = escape(parent.name + ' > ' + name);
                         parentId = parent.parentId;
                     }
-                    return `<option value="${location.id}" ${(location.id === issue.lbs_location) ? 'selected' : ''}>${name}</option>`;
+                    return `<option value="${location.id}" ${(location.id === issue.locationId) ? 'selected' : ''}>${name}</option>`;
                 }).join('\n')}
             </select>
         `;
 
+    
+        
         const StatusOptions = ['void', 'draft', 'open', 'answered', 'work_completed', 'ready_to_inspect', 'in_dispute', 'not_approved', 'closed'];
+
         const generateStatusSelect = (issue) => `
             <select class="custom-select custom-select-sm issue-status" data-original-value="${issue.status}" ${disabled('status', issue) ? 'disabled' : ''}>
                 ${StatusOptions.map(_status => `<option value="${_status}" ${(_status === issue.status) ? 'selected' : ''}>${_status}</option>`).join('\n')}
@@ -291,17 +318,21 @@ class IssueView {
         for (const issue of issues) {
             const title = escape(issue.title || '');
             const description = escape(issue.description || '');
-            const answer = escape(issue.answer || '')
+            const dueDate = escape(issue.dueDate || '')
             $tbody.append(`
                 <tr>
                     <td class="center">
-                        ${issue.identifier}
+                        ${issue.displayId}
                     </td>
                     <td>
                         ${generateIssueTypeSelect(issue)}
                     </td>
                     <td>
                         ${generateIssueSubtypeSelect(issue)}
+                    </td>
+                    
+                    <td>
+                        ${generateRootCauseSelect(issue)}
                     </td>
                     <td>
                         <input type="text" class="form-control form-control-sm issue-title" data-original-value="${title}" value="${title}" ${disabled('title', issue) ? 'disabled' : ''}>
@@ -316,25 +347,26 @@ class IssueView {
                         ${generateLocationSelect(issue)}
                     </td>
                     <td>
-                        <input type="text" class="form-control form-control-sm issue-document" data-target-urn="${issue.target_urn}" value="Loading..." disabled>
-                    </td>
+                    <input type="text" class="form-control form-control-sm issue-document" data-target-urn="${issue.linkedDocuments.length > 0 ? issue.linkedDocuments[0].urn : ''}"   value="Loading..." disabled>
+               </td>
                     <td>
                         ${generateStatusSelect(issue)}
                     </td>
                     <td>
-                        <input type="text" class="form-control form-control-sm issue-answer" data-original-value="${answer}" value="${answer}" ${disabled('answer', issue) ? 'disabled' : ''}>
-                    </td>
+                    <input type="date" class="form-control form-control-sm issue-due-date" data-due-date="${issue.dueDate}" data-original-value="${dueDate}"  value="${issue.dueDate}" ${disabled('dueDate', issue) ? 'disabled' : ''}>
+               </td>
+                   
                     <td class="center">
                         ${
-                            issue.comment_count
-                            ? `<button type="button" class="btn btn-outline-info btn-sm issue-comments" data-issue-id="${issue.id}" data-toggle="popover" title="Comments" data-content="Loading...">${issue.comment_count}</button>`
+                            issue.commentCount
+                            ? `<button type="button" class="btn btn-outline-info btn-sm issue-comments" data-issue-id="${issue.id}" data-toggle="popover" title="Comments" data-content="Loading...">${issue.commentCount}</button>`
                             : '0'
                         }
                     </td>
                     <td class="center">
                         ${
-                            issue.attachment_count
-                            ? `<button type="button" class="btn btn-outline-info btn-sm issue-attachments" data-issue-id="${issue.id}" data-toggle="popover" title="Attachments" data-content="Loading...">${issue.attachment_count}</button>`
+                            issue.attachmentCount
+                            ? `<button type="button" class="btn btn-outline-info btn-sm issue-attachments" data-issue-id="${issue.id}" data-toggle="popover" title="Attachments" data-content="Loading...">${issue.attachmentCount}</button>`
                             : '0'
                         }
                     </td>
@@ -349,10 +381,15 @@ class IssueView {
 
         // Retrieve details of all linked documents
         let documentPromiseCache = new Map();
+        // console.log("documentPromiseCache issue.js: 359", documentPromiseCache)
         const docsClient = this.docsClient;
-        $tbody.find('input.issue-document').each(function () {
+        $tbody.find('input.issue-document').each(async function () {
             const $input = $(this);
+         
             const urn = $input.data('target-urn');
+
+            
+
             if (!urn || urn == 'null') {
                 $input.val('');
                 return;
@@ -375,13 +412,19 @@ class IssueView {
         // Enable comments/attachments popovers where needed
         const issueClient = this.issueClient;
         $tbody.find('button.issue-comments').each(async function () {
-            const $this = $(this);
+            let $this = $(this);
             const issueId = $this.data('issue-id');
             try {
                 const comments = await issueClient.listIssueComments(issueId);
+            // console.log('attachments', attachments, 'comments',comments )
+
                 const html = `
                     <ul>
-                        ${comments.map(comment => `<li>[${new Date(comment.created_at).toLocaleString()}] ${escape(comment.body)}</li>`).join('\n')}
+                        ${comments.map(comment => `<li>
+                        [${new Date(comment.createdAt).toLocaleString()}]
+                        <div>${escape(comment.body)}</div>
+                         </li>
+                         `).join('\n')}
                     </ul>
                 `;
                 $this.attr('data-content', html);
@@ -403,20 +446,21 @@ class IssueView {
         });
         const issueContainerId = this.issueClient.issueContainerId;
         $tbody.find('button.issue-attachments').each(async function () {
-            const $this = $(this);
+            let $this = $(this);
             const issueId = $this.data('issue-id');
+            
             try {
-                const attachments = await issueClient.listIssueAttachments(issueId);
+            const attachments  = await issueClient.listIssueAttachments(issueId);
                 const html = `
                     <ul>
                         ${attachments.map(attachment => `
                             <li>
-                                [${new Date(attachment.created_at).toLocaleString()}]
+                                [${new Date(attachment.createdAt).toLocaleString()}]
                                 <a target="_blank" href="/api/issues/${issueContainerId}/${issueId}/attachments/${attachment.id}">
                                     <div>${escape(attachment.name)}</div>
                                     ${
                                         (attachment.name.toLowerCase().endsWith('.png') || attachment.name.toLowerCase().endsWith('.jpg') || attachment.name.toLowerCase().endsWith('.jpeg'))
-                                            ? `<img alt="Loading..." src="/api/issues/${issueContainerId}/${issueId}/attachments/${attachment.id}" width="64">`
+                                            ? `<img alt="Loading..." src="/api/issues/${issueContainerId}/${issueId}/attachments/${attachment.id}" target="_blank"  width="64">`
                                             : ''
                                     }
                                 </a>
@@ -425,9 +469,11 @@ class IssueView {
                     </ul>
                 `;
                 $this.attr('data-content', html);
-            } catch(err) {
+            } 
+            catch(err) {
                 $this.attr('data-content', `Could not load attachments: ${err}`);
-            } finally {
+            }
+             finally {
                 $this.popover({ html: true, trigger: 'manual' })
                     .on('mouseenter', function () {
                         const _this = this;
@@ -473,8 +519,10 @@ class IssueClient {
             }
         }
         const response = await fetch(url.toString());
+
         if (response.ok) {
             const json = await response.json();
+
             return json;
         } else {
             const message = await response.text();
@@ -494,9 +542,11 @@ class IssueClient {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
+
         });
         if (response.ok) {
             const json = await response.json();
+
             return json;
         } else {
             const message = await response.text();
@@ -504,26 +554,18 @@ class IssueClient {
         }
     }
 
-    async listIssues(identifier = null, owner = null, createdBy = null, dueDate = null, issueType = null, issueSubtype = null, offset = null, limit = null) {
-        if (identifier) {
-            const issues = await this._get(``, {
-                owner,
-                created_by: createdBy,
-                due_date: dueDate,
-                ng_issue_type_id: issueType,
-                ng_issue_subtype_id: issueSubtype
-            });
-            return issues.filter(issue => issue.identifier.toString() === identifier);
-        } else {
+    async listIssues(displayId = null, ownerId = null, createdBy = null, dueDate = null, issueType = null, issueSubtype = null, offset = null, limit = null) {
+        
             return this._get(``, {
-                owner,
-                created_by: createdBy,
-                due_date: dueDate,
-                ng_issue_type_id: issueType,
-                ng_issue_subtype_id: issueSubtype,
+                displayId,
+                ownerId,
+                createdBy: createdBy,
+                dueDate: dueDate,
+                issueTypeId: issueType,
+                issueSubtypeId: issueSubtype,
                 offset, limit
             });
-        }
+
     }
 
     async updateIssue(issueId, attrs) {
@@ -535,6 +577,7 @@ class IssueClient {
     }
 
     async listIssueAttachments(issueId, offset = null, limit = null) {
+        console.log('checking attachment endpoint')
         return this._get(`/${issueId}/attachments`, { offset, limit });
     }
 
@@ -592,6 +635,7 @@ class LocationClient {
         const response = await fetch(url.toString());
         if (response.ok) {
             const json = await response.json();
+
             return json;
         } else {
             const message = await response.text();
@@ -604,13 +648,18 @@ class LocationClient {
         const PageSize = 256
         let offset = 0;
         let results = [];
-        let locations = await this._get('', { offset, limit: PageSize })
-        while (locations.length > 0) {
-            results = results.concat(locations);
-            offset += PageSize;
-            locations = await this._get('', { offset, limit: PageSize })
-        }
-        return results;
+        let locations = await this._get('', {})
+        // let locations = await this._get('', { offset, limit: PageSize })
+
+        // while (locations.length > 0) {
+        //     results = results.concat(locations);
+        //     offset += PageSize;
+        //     // locations = await this._get('', { offset, limit: PageSize })
+        //     locations = await this._get('', {})
+
+        // }
+        // console.log("Console locations", locations)
+        return locations;
     }
 }
 
@@ -641,5 +690,10 @@ class DocsClient {
     async getItemDetails(itemId) {
         const details = await this._get(`/${itemId}`);
         return details;
+    }
+    async getLinkedDoc(issue) {
+        // const details = await this._get(`/${itemId}`);
+        const urn = issue.linkedDocuments.urn;
+        return urn;
     }
 }
