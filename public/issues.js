@@ -14,6 +14,7 @@ class IssueView {
         this.pageSize = 15;
         this.users = [];
         this.issueTypes = [];
+        this.rootCauses = [];
         this.locations = [];
         this.rootCauses = [];
     }
@@ -25,18 +26,13 @@ class IssueView {
             const [users, issueTypes] = await Promise.all([
                 this.userClient.listUsers(),
                 this.issueClient.listIssueTypes(),
-
-              
             ]);
             const rootCauses = await this.issueClient.listRootCauses()
             
-
             this.users = users;
             this.issueTypes = issueTypes;
             this.rootCauses = rootCauses;
-
-           
-
+        
 
         } catch (err) {
             this.hideSpinner();
@@ -234,10 +230,11 @@ class IssueView {
     
         $tbody.empty();
         this.showSpinner('Updating issues...');
-
+        const issueClient = this.issueClient;
         // Get issues based on the current filters
        
         let issues = [];
+    
         try {
             const issueDisplayId= $('#issue-num-picker').val();
             const issueOwner = $('#owner-picker').val();
@@ -245,8 +242,7 @@ class IssueView {
             const issueType = $('#issue-type-picker').val();
             const issueSubtype = $('#issue-subtype-picker').val();
             const dueDate = $('#due-date-picker').val();
-            issues = await this.issueClient.listIssues(issueDisplayId || null, issueOwner || null, createdBy || null, dueDate || null, issueType || null, issueSubtype || null, this.page * this.pageSize, this.pageSize);
-           
+            issues = await issueClient.listIssues(issueDisplayId || null, issueOwner || null, createdBy || null, dueDate || null, issueType || null, issueSubtype || null, this.page * this.pageSize, this.pageSize);
         } catch (err) {
             $container.append(`<div class="alert alert-dismissible alert-warning">${err}</div>`);
         } finally {
@@ -385,11 +381,7 @@ class IssueView {
         const docsClient = this.docsClient;
         $tbody.find('input.issue-document').each(async function () {
             const $input = $(this);
-         
             const urn = $input.data('target-urn');
-
-            
-
             if (!urn || urn == 'null') {
                 $input.val('');
                 return;
@@ -410,14 +402,14 @@ class IssueView {
         });
 
         // Enable comments/attachments popovers where needed
-        const issueClient = this.issueClient;
+        let comments = [];
+
         $tbody.find('button.issue-comments').each(async function () {
             let $this = $(this);
             const issueId = $this.data('issue-id');
+            comments = await issueClient.listIssueComments(issueId);
             try {
-                const comments = await issueClient.listIssueComments(issueId);
-            // console.log('attachments', attachments, 'comments',comments )
-
+        
                 const html = `
                     <ul>
                         ${comments.map(comment => `<li>
@@ -444,13 +436,15 @@ class IssueView {
                     });
             }
         });
+
         const issueContainerId = this.issueClient.issueContainerId;
+        let attachments =[];
         $tbody.find('button.issue-attachments').each(async function () {
             let $this = $(this);
             const issueId = $this.data('issue-id');
-            
+
             try {
-            const attachments  = await issueClient.listIssueAttachments(issueId);
+                attachments = await issueClient.listIssueAttachments(issueId);
                 const html = `
                     <ul>
                         ${attachments.map(attachment => `
@@ -460,7 +454,7 @@ class IssueView {
                                     <div>${escape(attachment.name)}</div>
                                     ${
                                         (attachment.name.toLowerCase().endsWith('.png') || attachment.name.toLowerCase().endsWith('.jpg') || attachment.name.toLowerCase().endsWith('.jpeg'))
-                                            ? `<img alt="Loading..." src="/api/issues/${issueContainerId}/${issueId}/attachments/${attachment.id}" target="_blank"  width="64">`
+                                            ? `<img alt="Loading..." src="/api/issues/${issueContainerId}/${issueId}/attachments/${attachment.id}" width="64">`
                                             : ''
                                     }
                                 </a>
@@ -488,7 +482,6 @@ class IssueView {
             }
         });
     }
-
     showSpinner(message = 'Loading...') {
         $('#container').append(`
             <div id="issues-loading-spinner" class="d-flex justify-content-center">
@@ -529,7 +522,7 @@ class IssueClient {
             throw new Error(message);
         }
     }
-
+    
     async _patch(endpoint, body, params = {}) {
         const url = new URL(`/api/issues/${this.issueContainerId}` + endpoint, window.location.origin);
         url.searchParams.append('region', this.region);
@@ -571,16 +564,19 @@ class IssueClient {
     async updateIssue(issueId, attrs) {
         return this._patch(`/${issueId}`, attrs);
     }
+    async listIssueAttachments(issueId,  offset = null, limit = null) {
+        // console.log('attachement endpoint', issueId)
+        
+        return this._get(`/${issueId}/attachments`,  { offset, limit });
+    }
 
     async listIssueComments(issueId, offset = null, limit = null) {
-        return this._get(`/${issueId}/comments`, { offset, limit });
-    }
 
-    async listIssueAttachments(issueId, offset = null, limit = null) {
-        console.log('checking attachment endpoint')
-        return this._get(`/${issueId}/attachments`, { offset, limit });
-    }
+        // return this._get(`/${issueId}/comments`, { offset, limit });
+        return this._get(`/${issueId}/comments`,  { offset, limit });
 
+    }
+    
     async listRootCauses() {
         return this._get(`/root-causes`);
     }

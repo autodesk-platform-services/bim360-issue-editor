@@ -1,5 +1,10 @@
 const express = require('express');
 const { getAuthorizationUrl, authCallbackMiddleware, authRefreshMiddleware, getUserProfile } = require('../services/aps.js');
+const { AuthenticationClient } = require('forge-server-utils');
+const config = require('../config');
+
+let authClient = new AuthenticationClient(config.client_id, config.client_secret);
+
 
 let router = express.Router();
 

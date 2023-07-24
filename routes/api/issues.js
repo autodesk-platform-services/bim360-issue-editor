@@ -2,8 +2,6 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const spawn = require('child_process').spawn;
-const which = require('which');
-var zip = new require('node-zip')()
 const express = require('express');
 const { AuthenticationClient, BIM360Client } = require('forge-server-utils');
 const axios = require('axios').default;
@@ -11,6 +9,7 @@ const multer = require('multer');
 const mail = require('@sendgrid/mail');
 const upload = multer({ dest: 'uploads/' });
 var AdmZip = require("adm-zip");
+var Minizip = require('minizip-asm.js');
 
 const config = require('../../config');
 const { exportIssues, importIssues } = require('../../helpers/excel');
@@ -237,7 +236,7 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
         }
         fs.writeFileSync(jsonPath, cfg);
 
-        // creating archives
+        //creating archives
         var zip = new AdmZip();
        
         // add local file
@@ -251,6 +250,7 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
             console.log("Could not compress the file.")
                 return;
         }
+
         res.sendFile(zipPath, function (err) {
                     if (err) {
                         handleError(err, res);
@@ -258,7 +258,7 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
                     fs.unlinkSync(jsonPath);
                     fs.unlinkSync(zipPath);
                 });
-
+       
     } catch (err) {
         handleError(err, res);
     }
@@ -352,6 +352,7 @@ router.get('/:issue_container/:issue/attachments', async function (req, res) {
     const token = req.bim360.token;
     try {
         const attachments = await bim360V2.listIssueAttachments(issue_container, issue, token);
+        
         res.json(attachments);
     } catch (err) {
         handleError(err, res);
@@ -370,24 +371,9 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
         const match = attachments.find(attachment => attachment.id === id);
         if (match) {
            
-           
-          
-            const file_full_path_name = await bim360V2.downloadAttachment(match.urn, match.name, token);
-
-            const readableStream = fs.createReadStream(file_full_path_name);
-
+            const buffer = await bim360V2.downloadAttachment(match.urn, match.name, token);
             const extension = match.urn.substr(match.urn.lastIndexOf('.'));
-
-
-            readableStream.on('error', function (error) {
-                console.log(`error on previewing the file: ${error.message}`);
-            })
-        
-            readableStream.on('open', ()=> {
-                  
-                readableStream.pipe(res.type(extension))
-            })
-           
+            res.type(extension).send(buffer);
 
         } else {
             console.log("Error while previewing the file")

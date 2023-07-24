@@ -5,7 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const { ok } = require('assert');
 var stream = require('stream');
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
+// let fetch = await import('node-fetch')
 
 const base_url = 'https://developer.api.autodesk.com';
 
@@ -92,7 +93,6 @@ async function listIssuesV2(containerId, three_legged_token,  filter, page){
     
 }
 
-
 async function listIssueTypesV2(containerId, three_legged_token ,includeSubtypes) {
     // TODO: support 'filter', 'include', or 'fields' params
 
@@ -104,10 +104,10 @@ async function listIssueTypesV2(containerId, three_legged_token ,includeSubtypes
 
     let response = await axios.get(`${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issue-types?limit=${PageSize}${includeSubtypes ? '&include=subtypes' : ''}`, opts, ReadTokenScopes);
     let results = response.data.results;
-    while (response.pagination && response.pagination.offset + response.pagination.limit < response.pagination.totalResults) {
-        response = await axios.get(`${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issue-types?offset=${response.pagination.offset + response.pagination.limit}&limit=${PageSize}${includeSubtypes ? '&include=subtypes' : ''}`, opts, ReadTokenScopes);
-        results = results.concat(response.data.results);
-    }
+    // while (response.data.pagination && response.data.pagination.offset + response.data.pagination.limit < response.data.pagination.totalResults) {
+    //     response = await axios.get(`${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issue-types?offset=${response.data.pagination.offset + response.data.pagination.limit}&limit=${PageSize}${includeSubtypes ? '&include=subtypes' : ''}`, opts, ReadTokenScopes);
+    //     results = results.concat(response.data.results);
+    // }
     return results;
 }
 
@@ -148,7 +148,6 @@ async function listIssueRootCauses(containerId, three_legged_token, includeRootC
 
 async function listIssueComments(containerId, issueId, three_legged_token, page) {
    
-    const PageSize = 64;
     // TODO: support 'filter', 'include', or 'fields' params
     let opts = {
         headers: {
@@ -171,6 +170,7 @@ async function listIssueAttachments(containerId, issueId, three_legged_token) {
     let opts = {
         headers: {
             'Authorization': `Bearer ${three_legged_token}`
+
         }
     };
     const url = `${base_url}/issues/v2/containers/${encodeURIComponent(containerId)}/issues/${encodeURIComponent(issueId)}/attachments`;
@@ -193,9 +193,9 @@ async function  listIssueAttributeDefinitions(containerId, three_legged_token) {
 
     let response = await axios.get(url, headers, ReadTokenScopes);
 
-    let results = response.results;
-    while (response.pagination && response.pagination.offset + response.pagination.limit < response.pagination.totalResults) {
-        response = await axios.get(`issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-definitions?offset=${response.pagination.offset + response.pagination.limit}&limit=${PageSize}`, headers, ReadTokenScopes);
+    let results = response.data.results;
+    while (response.data.pagination && response.data.pagination.offset + response.data.pagination.limit < response.data.pagination.totalResults) {
+        response = await axios.get(`issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-definitions?offset=${response.data.pagination.offset + response.data.pagination.limit}&limit=${PageSize}`, headers, ReadTokenScopes);
         results = results.concat(response.results);
     }
     return results;
@@ -212,9 +212,9 @@ async function listIssueAttributeMappings(containerId, three_legged_token) {
         'Authorization': `Bearer ${three_legged_token}`
     }
     let response = await axios.get(`issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-mappings?limit=${PageSize}`, opts, ReadTokenScopes);
-    let results = response.results;
-    while (response.pagination && response.pagination.offset + response.pagination.limit < response.pagination.totalResults) {
-        response = await axios.get(`issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-mappings?offset=${response.pagination.offset + response.pagination.limit}&limit=${PageSize}`, headers, ReadTokenScopes);
+    let results = response.data.results;
+    while (response.data.pagination && response.data.pagination.offset + response.data.pagination.limit < response.data.pagination.totalResults) {
+        response = await axios.get(`issues/v2/containers/${encodeURIComponent(containerId)}/issue-attribute-mappings?offset=${response.data.pagination.offset + response.data.pagination.limit}&limit=${PageSize}`, headers, ReadTokenScopes);
         results = results.concat(response.results);
     }
     return results;
@@ -225,12 +225,26 @@ async function getBinary(endpoint, headers) {
     const options = { headers };
     const response = await fetch(endpoint, options);
     if (response.status == 200) { 
+       
         return response.body
     } else {
         const message = await response.text(); 
         throw new Error(response.status+ ' ' + response.statusText + ' ' + message);
     }
 }
+
+async function toBuffer(stream) {
+    const list = []
+    const reader = stream.getReader()
+    while (true) {
+      const { value, done } = await reader.read()
+      if (value)
+        list.push(value)
+      if (done)
+        break
+    }
+    return Buffer.concat(list)
+  }
 
 
 async function downloadAttachment(urn,name, token) {
@@ -243,31 +257,31 @@ async function downloadAttachment(urn,name, token) {
       //Generate a signed S3 URL
       const res = await getS3SignedDownloadUrl(attachment_bucket_key,attachment_object_key, token)
       const s3_download_url = res.data.url 
-      const rootDir = path.resolve(process.cwd(),'Files');
-
-      if (!fs.existsSync(rootDir)) {
-        fs.mkdirSync(rootDir);
-    }
-      const file_full_path_name = path.join(rootDir, name) 
    
-    const fileStream = fs.createWriteStream(file_full_path_name);
     const body = await getBinary(s3_download_url) 
+    const buffer = await toBuffer(body)
+    console.log('Attachment File saved.')  
 
-    await new Promise((resolve, reject) => {
-      body.pipe(fileStream);
-      body.on("error", reject);
-      fileStream.on("finish", resolve);
-      console.log('Attachment File Saved.')  
-    });
-
-    return file_full_path_name 
-  
+    return buffer
   
     }catch (e) {
       console.error(`download attachment failed: ${e}`)
       return null
     }
   }
+
+  function stream2buffer(stream) {
+
+    return new Promise((resolve, reject) => {
+        
+        const _buf = [];
+
+        stream.on("data", (chunk) => _buf.push(chunk));
+        stream.on("end", () => resolve(Buffer.concat(_buf)));
+        stream.on("error", (err) => reject(err));
+
+    });
+} 
 
   async function getS3SignedDownloadUrl(bucketKey,objectKey,three_legged_token) {
     try {
@@ -434,7 +448,64 @@ async function refreshToken(clientId, clientSecret, refreshToken)
 
 }
 
+async function listHubs() {
+    try{
+    const config = {
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    };
+    
+    let response = await axios.get(`project/v1/hubs`, config, ReadTokenScopes);
+    let results = response.data;
+    while (response.links && response.links.next) {
+        response = await this.get(response.links.next.href, config, ReadTokenScopes);
+        results = results.concat(response.data);
+    }
+    return results
+} catch (e) {
+    console.error(`Error listing hubs: ${e}`)
+    return null
+  }
 
+}
+
+async function getHubDetails(hubId, token) {
+    try{
+    const config = {
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    };
+    const response = await axios.get(`${base_url}/project/v1/hubs/${encodeURIComponent(hubId)}`, config, ReadTokenScopes);
+
+    
+    console.log(response.data)
+    return response.data;
+} catch (e) {
+    console.error(`Error listing hubs: ${e}`)
+    return null
+  }
+}
+async function listProjects(hubId, token) {
+    try{
+    const config = {
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    };
+    let response = await axios.get(`$${base_url}/roject/v1/hubs/${encodeURIComponent(hubId)}/projects`, config, ReadTokenScopes);
+    let results = response.data;
+    while (response.links && response.links.next) {
+        response = await axios.get(response.links.next.href, config, ReadTokenScopes);
+        results = results.concat(response.data);
+    }
+    return results
+} catch (e) {
+    console.error(`Error listing hubs: ${e}`)
+    return null
+  }
+}
 
 
 
@@ -454,5 +525,8 @@ module.exports = {
     listProjectUsers,
     getUserProfile,
     basicAuthorization,
-    refreshToken
+    refreshToken,
+    getHubDetails,
+    listHubs,
+    listProjects
 };
