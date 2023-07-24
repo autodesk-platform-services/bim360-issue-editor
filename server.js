@@ -16,6 +16,8 @@ if (!SERVER_SESSION_SECRET || !APS_APP_NAME || !APS_CLIENT_ID || !APS_CLIENT_SEC
 let app = express();
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
+
+// app.use(express.static('build'));
 // app.use(session({
 //     name: 'Bim360IssuesDemoSession',
 //     keys: [SERVER_SESSION_SECRET],

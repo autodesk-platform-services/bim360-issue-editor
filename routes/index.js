@@ -1,6 +1,7 @@
 const express = require('express');
 const { AuthenticationClient, BIM360Client } = require('forge-server-utils');
 const config = require('../config');
+const bim360V2 = require('./../helpers/bim360V2');
 
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 
@@ -15,16 +16,18 @@ let router = express.Router();
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
       try{
-        authRefreshMiddleware(req)
+        await authRefreshMiddleware(req)
     
-       req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
       }catch (err) {
-        next(err);
+        res.render('error', { session: req.session, error: err });
+        return;
       }
+       req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
         
     }
     next();
 });
+
 
 router.get('/user', function (req, res, next) {
     console.log("User Router Working");
@@ -52,7 +55,10 @@ router.get('/:hub', async function (req, res) {
     try {
         let hub, projects = [];
         if (req.bim360) {
+        //    hub = await bim360V2.getHubDetails(req.params.hub, req.bim360.token);
            hub = await req.bim360.getHubDetails(req.params.hub);
+
+            // projects = await bim360V2.listProjects(req.params.hub, req.bim360.token);
             projects = await req.bim360.listProjects(req.params.hub);
            
         }
