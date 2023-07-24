@@ -41,6 +41,7 @@ function handleError(err, res) {
 // Parse JSON body
 router.use(express.json());
 
+// Refresh token whenever needed
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
       try{
@@ -55,6 +56,7 @@ router.use('/', async function (req, res, next) {
     }
     next();
 });
+
 
 
 router.get('/:issue_container', async function (req, res) {

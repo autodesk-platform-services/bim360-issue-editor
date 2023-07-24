@@ -16,6 +16,7 @@ class IssueView {
         this.issueTypes = [];
         this.rootCauses = [];
         this.locations = [];
+        this.rootCauses = [];
     }
 
     async init() {
@@ -404,7 +405,7 @@ class IssueView {
         let comments = [];
 
         $tbody.find('button.issue-comments').each(async function () {
-            const $this = $(this);
+            let $this = $(this);
             const issueId = $this.data('issue-id');
             comments = await issueClient.listIssueComments(issueId);
             try {
@@ -439,7 +440,7 @@ class IssueView {
         const issueContainerId = this.issueClient.issueContainerId;
         let attachments =[];
         $tbody.find('button.issue-attachments').each(async function () {
-            const $this = $(this);
+            let $this = $(this);
             const issueId = $this.data('issue-id');
 
             try {
@@ -462,9 +463,11 @@ class IssueView {
                     </ul>
                 `;
                 $this.attr('data-content', html);
-            } catch(err) {
+            } 
+            catch(err) {
                 $this.attr('data-content', `Could not load attachments: ${err}`);
-            } finally {
+            }
+             finally {
                 $this.popover({ html: true, trigger: 'manual' })
                     .on('mouseenter', function () {
                         const _this = this;
@@ -508,7 +511,6 @@ class IssueClient {
                 url.searchParams.append(key, params[key]);
             }
         }
-
         const response = await fetch(url.toString());
 
         if (response.ok) {
