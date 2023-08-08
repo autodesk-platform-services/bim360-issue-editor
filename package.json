@@ -37,5 +37,8 @@
     "node-7z": "^3.0.0",
     "node-zip": "^1.1.1",
     "which": "^3.0.1"
+  },
+  "devDependencies": {
+    "archiver-zip-encryptable": "^1.0.10"
   }
 }

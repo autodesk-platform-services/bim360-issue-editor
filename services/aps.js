@@ -1,9 +1,10 @@
 const APS = require('forge-apis');
-const bim360V2 = require('./../helpers/bim360V2')
+const axios = require('axios').default;
 const { client_id, client_secret, callback_url, scopes, PUBLIC_TOKEN_SCOPES } = require('../config.js');
-
-const internalAuthClient = new APS.AuthClientThreeLegged(client_id, client_secret, callback_url, scopes);
-const publicAuthClient = new APS.AuthClientThreeLegged(client_id, client_secret, callback_url, PUBLIC_TOKEN_SCOPES);
+// @ts-ignore
+const internalAuthClient = new APS.AuthClientThreeLeggedV2(client_id, client_secret, callback_url, scopes);
+// @ts-ignore
+const publicAuthClient = new APS.AuthClientThreeLeggedV2(client_id, client_secret, callback_url, PUBLIC_TOKEN_SCOPES);
 
 const service = module.exports = {};
 
@@ -17,9 +18,8 @@ service.authCallbackMiddleware = async (req, res, next) => {
     req.session.access_token = internalCredentials.access_token;
     req.session.refresh_token = publicCredentials.refresh_token;
     req.session.expires_at = Date.now() + internalCredentials.expires_in * 1000;
-    const profile = await bim360V2.getUserProfile(req.session.access_token)
-    req.session.user_name = profile.preferred_username
-    // req.session.user_email = profile.emailVerified ? profile.emailId : '';
+    const profile = await service.getUserProfile(req.session.access_token)
+    req.session.user_name = profile.name
     req.session.user_email =  profile.email;
 
 
@@ -53,8 +53,15 @@ service.authRefreshMiddleware = async (req, res, next) => {
 };
 
 service.getUserProfile = async (token) => {
-    const resp = await new APS.UserProfileApi().getUserProfile(internalAuthClient, token);
-    return resp.body;
+   
+    const config = {
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    };
+    const resp = await axios.get('https://api.userprofile.autodesk.com/userinfo', config);
+
+    return resp.data;
 };
 service.getHubs = async (token) => {
     const resp = await new APS.HubsApi().getHubs(null, internalAuthClient, token);

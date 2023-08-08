@@ -1,7 +1,7 @@
 const { BIM360Client } = require('forge-server-utils');
 const axios = require('axios').default;
 const ExcelJS = require('exceljs');
-const bim360V2 = require('./bim360V2');
+const bim360V2 = require('./bim360IssueV2');
 
 /**
  * Exports BIM360 issues and related data into XLSX spreadsheet.
@@ -76,9 +76,28 @@ async function loadIssueTypes(three_legged_token, issueContainerID) {
 
 async function loadUsers(projectId, three_legged_token) {
 
-    const users = await bim360V2.listProjectUsers(projectId, three_legged_token)
+    const users = await listProjectUsers(projectId, three_legged_token)
     
     return users;
+}
+async function listProjectUsers(projectId, token) {
+    const PageSize = 64;
+    console.log('Fetching BIM360 project users.');
+
+    let url = `https://developer.api.autodesk.com/bim360/admin/v1/projects/${projectId}/users?limit=${PageSize}`;
+    let opts = {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    };
+    let response = await axios.get(url, opts);
+    let results = response.data.results;
+    while (response.data.pagination && response.data.pagination.nextUrl) {
+        url = response.data.pagination.nextUrl;
+        response = await axios.get(url, opts);
+        results = results.concat(response.data.results);
+    }
+    return results;
 }
 
 async function loadLocations(three_legged_token, locationContainerID) {
@@ -178,7 +197,12 @@ function fillIssues(worksheet, issues, types, users, locations, documents) {
             const documentUrn = documentID[0].urn;
 
             const document = documents.find(d => d.relationships.item && d.relationships.item.data.id === documentUrn);
-            return encodeNameID(document.attributes.displayName, document.id);
+            if(document){
+                return encodeNameID(document.attributes.displayName, document.id);
+
+            }else{
+                return ''
+            }
         }
         else {
             return '';
@@ -223,15 +247,13 @@ function fillIssues(worksheet, issues, types, users, locations, documents) {
 
     const IssueColumns = [
         { id: 'id',             propertyName: 'id',                     columnTitle: 'ID',          columnWidth: 8,     locked: true },
-        { id: 'type',           propertyName: 'issueSubtypeId',            columnTitle: 'Type',        columnWidth: 16,    locked: true,   format: IssueTypeFormat,        validation: IssueTypeValidation },
-        // { id: 'subtype',        propertyName: 'issueSubtypeId',         columnTitle: 'SubType',      columnWidth: 16,   locked: true,   format: IssueTypeFormat,        validation: IssueTypeValidation },
+        { id: 'type',           propertyName: 'issueSubtypeId',         columnTitle: 'Type',        columnWidth: 16,    locked: true,   format: IssueTypeFormat,        validation: IssueTypeValidation },
         { id: 'title',          propertyName: 'title',                  columnTitle: 'Title',       columnWidth: 32,    locked: false },
         { id: 'description',    propertyName: 'description',            columnTitle: 'Description', columnWidth: 32,    locked: false },
         { id: 'owner',          propertyName: 'ownerId',                columnTitle: 'Owner',       columnWidth: 16,    locked: true,   format: IssueOwnerFormat,       validation: IssueOwnerValidation },
         { id: 'location',       propertyName: 'locationId',             columnTitle: 'Location',    columnWidth: 16,    locked: true,   format: IssueLocationFormat,    validation: IssueLocationValidation },
         { id: 'document',       propertyName: 'linkedDocuments',        columnTitle: 'Document',    columnWidth: 32,    locked: true,   format: IssueDocumentFormat,    validation: IssueDocumentValidation },
         { id: 'status',         propertyName: 'status',                 columnTitle: 'Status',      columnWidth: 16,    locked: false,                                  validation: IssueStatusValidation },
-        // { id: 'answer',         propertyName: 'answer',                 columnTitle: 'Answer',      columnWidth: 32,    locked: false },
         { id: 'comments',       propertyName: 'commentCount',           columnTitle: 'Comments',    columnWidth: 8,     locked: true },
         { id: 'attachments',    propertyName: 'attachmentCount',       columnTitle: 'Attachments', columnWidth: 8,     locked: true }
     ];
