@@ -23,20 +23,22 @@ class IssueView {
         // Initialize issue owners and types
         this.showSpinner('Initializing issue owners and types...');
         try {
+            const rootCauses = await this.issueClient.listRootCauses()
+
             const [users, issueTypes] = await Promise.all([
                 this.userClient.listUsers(),
                 this.issueClient.listIssueTypes(),
             ]);
-            const rootCauses = await this.issueClient.listRootCauses()
-            
-            this.users = users;
+          
+            this.users = users
             this.issueTypes = issueTypes;
             this.rootCauses = rootCauses;
+
         
 
         } catch (err) {
             this.hideSpinner();
-            $.notify('Could not initialize issues.\nSee console for more details.', 'error');
+            $.notify('Could not initialize issues.\nEither your project has no issues, issueTypes or rootCauses associated .', 'error');
             console.error('Could not initialize issues.', err);
             return;
         }

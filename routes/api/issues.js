@@ -4,17 +4,17 @@ const path = require('path');
 const spawn = require('child_process').spawn;
 const express = require('express');
 const { AuthenticationClient, BIM360Client } = require('forge-server-utils');
-const axios = require('axios').default;
 const multer = require('multer');
 const mail = require('@sendgrid/mail');
 const upload = multer({ dest: 'uploads/' });
 var AdmZip = require("adm-zip");
-var Minizip = require('minizip-asm.js');
 
 const config = require('../../config');
 const { exportIssues, importIssues } = require('../../helpers/excel');
 
-const bim360V2 = require('../../helpers/bim360V2');
+const bim360V2 = require('../../helpers/bim360IssueV2');
+const bim360OssV2 = require('../../helpers/bim360OssV2');
+
 const { authRefreshMiddleware } = require('../../services/aps');
 const { getUserProfile } = require('../../services/aps');
 const base_url = 'https://developer.api.autodesk.com';
@@ -244,7 +244,6 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
         
         // or write everything to disk
         zip.writeZip(zipPath);
-        // console.log("tempDir", zipPath)
 
         if (!fs.existsSync(zipPath)) {
             console.log("Could not compress the file.")
@@ -263,6 +262,7 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
         handleError(err, res);
     }
 });
+       
 
 // GET /api/issues/:issue_container/root-causes
 router.get('/:issue_container/root-causes', async function (req, res) {
@@ -371,7 +371,7 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
         const match = attachments.find(attachment => attachment.id === id);
         if (match) {
            
-            const buffer = await bim360V2.downloadAttachment(match.urn, match.name, token);
+            const buffer = await bim360OssV2.downloadAttachment(match.urn, token);
             const extension = match.urn.substr(match.urn.lastIndexOf('.'));
             res.type(extension).send(buffer);
 

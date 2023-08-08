@@ -1,7 +1,7 @@
 const express = require('express');
 const { AuthenticationClient, BIM360Client } = require('forge-server-utils');
 const config = require('../../config');
-const bim360V2 = require('../../helpers/bim360V2');
+const bim360V2 = require('../../helpers/bim360IssueV2');
 
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 let router = express.Router();
