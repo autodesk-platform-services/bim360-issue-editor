@@ -249,16 +249,23 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
             console.log("Could not compress the file.")
                 return;
         }
+        //check if the ALLOW_CONFIG_DOWNLOAD is set to true
+        if(process.env.ALLOW_CONFIG_DOWNLOAD == 'false'){
 
+            res.render('error', { session: req.session, error: `You do not have permissions to download the config file. Kindly, set the environment variable: ALLOW_CONFIG_DOWNLOAD to TRUE` });
+            return;
+        }
+            
         res.sendFile(zipPath, function (err) {
-                    if (err) {
-                        handleError(err, res);
-                    }
-                    fs.unlinkSync(jsonPath);
-                    fs.unlinkSync(zipPath);
-                });
-       
-    } catch (err) {
+            if (err) {
+                handleError(err, res);
+            }
+            fs.unlinkSync(jsonPath);
+            fs.unlinkSync(zipPath);
+        });
+
+        }
+ catch (err) {
         handleError(err, res);
     }
 });
