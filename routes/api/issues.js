@@ -253,7 +253,6 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
         
         if(process.env.ALLOW_CONFIG_DOWNLOAD = 'false'){
 
-            // handleError('You do not have permissions to download the config file');
             res.render('error', { session: req.session, error: `You do not have permissions to download the config file. Kindly, set the environment variable: ALLOW_CONFIG_DOWNLOAD to TRUE` });
             return;
         }
