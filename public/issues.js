@@ -38,7 +38,7 @@ class IssueView {
 
         } catch (err) {
             this.hideSpinner();
-            $.notify('Could not initialize issues.\nEither your project has no issues, issueTypes or rootCauses associated .', 'error');
+            $.notify('Could not initialize issues.\nEither your project has no users, issueTypes or rootCauses associated .', 'error');
             console.error('Could not initialize issues.', err);
             return;
         }
