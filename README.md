@@ -92,6 +92,7 @@ set APS_APP_NAME=<app name>
 set HOST_URL=<host url>
 set SERVER_SESSION_SECRET=<secret phrase>
 set CLI_CONFIG_PASSWORD=<another secret phrase>
+set ALLOW_CONFIG_DOWNLOAD=<false>
 yarn start
 ```
 
@@ -111,7 +112,8 @@ When using [Visual Studio Code](https://code.visualstudio.com), add this configu
         "APS_APP_NAME": "<app name>",
         "HOST_URL": "<host url>",
         "SERVER_SESSION_SECRET": "<secret phrase>",
-        "CLI_CONFIG_PASSWORD": "<another secret phrase>"
+        "CLI_CONFIG_PASSWORD": "<another secret phrase>",
+        "ALLOW_CONFIG_DOWNLOAD": "<false>"
     }
 }
 ```
