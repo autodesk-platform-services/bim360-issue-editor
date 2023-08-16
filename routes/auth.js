@@ -5,12 +5,6 @@ const { getAuthorizationUrl, authCallbackMiddleware, authRefreshMiddleware, getU
 
 let router = express.Router();
 
-
-// GET /api/auth/login
-// router.get('/api/auth/login', function (req, res) {
-//     res.redirect(getAuthorizationUrl());
-// });
-
 router.get('/login', function (req, res) {
     const url = getAuthorizationUrl();
 
