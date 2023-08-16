@@ -250,20 +250,20 @@ router.get('/:issue_container/config.json.zip', async function (req, res) {
                 return;
         }
         //check if the ALLOW_CONFIG_DOWNLOAD is set to true
-        if(process.env.ALLOW_CONFIG_DOWNLOAD == 'false'){
-
+        var check =  process.env.ALLOW_CONFIG_DOWNLOAD.toLowerCase()
+        if(check !== "true"){
             res.render('error', { session: req.session, error: `You do not have permissions to download the config file. Kindly, set the environment variable: ALLOW_CONFIG_DOWNLOAD to TRUE` });
             return;
+        } else{
+            res.sendFile(zipPath, function (err) {
+                if (err) {
+                    handleError(err, res);
+                }
+                fs.unlinkSync(jsonPath);
+                fs.unlinkSync(zipPath);
+            });
         }
-            
-        res.sendFile(zipPath, function (err) {
-            if (err) {
-                handleError(err, res);
-            }
-            fs.unlinkSync(jsonPath);
-            fs.unlinkSync(zipPath);
-        });
-
+        
         }
  catch (err) {
         handleError(err, res);
