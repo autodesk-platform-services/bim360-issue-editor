@@ -567,7 +567,6 @@ class IssueClient {
         return this._patch(`/${issueId}`, attrs);
     }
     async listIssueAttachments(issueId,  offset = null, limit = null) {
-        // console.log('attachement endpoint', issueId)
         
         return this._get(`/${issueId}/attachments`,  { offset, limit });
     }
@@ -656,7 +655,6 @@ class LocationClient {
         //     locations = await this._get('', {})
 
         // }
-        // console.log("Console locations", locations)
         return locations;
     }
 }

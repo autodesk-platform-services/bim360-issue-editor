@@ -165,8 +165,7 @@ router.get('/:issue_container/export-email', async function (req, res) {
                     to: user_email,
                     from: 'petr.broz@autodesk.com',
                     subject: 'Exported BIM360 Issues',
-                    text: 'Attached you will find the BIM360 issues exported from http://bim360-issue-editor.herokuapp.com.',
-                    attachments: [
+                    text: 'Attached you will find the BIM360 issues exported from http://bim360-issue-editor.herokuapp.com.',ments: [
                         {
                             content: excel.toString('base64'),
                             filename: 'issues.xlsx',
@@ -177,7 +176,6 @@ router.get('/:issue_container/export-email', async function (req, res) {
                 };
                 return mail.send(msg);
             }).then(resp => {
-                console.log('SendGrid response', resp);
             }).catch(err => {
                 throw err;
             });
