@@ -33,7 +33,6 @@ router.get('/api/auth/token', authRefreshMiddleware, function (req, res) {
 router.get('/api/auth/profile', authRefreshMiddleware, async function (req, res, next) {
     try {
         const profile = await getUserProfile(req.internalOAuthToken);
-        console.log("usser dets", profile)
        
         res.json({ name: `${profile.firstName} ${profile.lastName}` });
     } catch (err) {

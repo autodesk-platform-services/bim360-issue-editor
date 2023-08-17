@@ -18,7 +18,7 @@ using [Autodesk Platform Services](https://aps.autodesk.com) APIs.
 
 ### Web Application
 
-Live demo is running on https://bim360-issue-editor.autodesk.io.
+Live demo is running on https://bim360-issue-editor-v2.autodesk.io.
 
 In order to be able to access your BIM 360 project from this demo, you will need to add
 the following APS credentials as a [custom integration](https://forge.autodesk.com/en/docs/bim360/v1/tutorials/getting-started/manage-access-to-docs):
