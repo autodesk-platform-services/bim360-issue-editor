@@ -329,6 +329,10 @@ router.patch('/:issue_container/:issue', async function (req, res) {
     const token = req.bim360.token;
     const payload = req.body;
 
+    if(payload.locationId == ''){
+        delete payload.locationId
+    }
+
     try {
         
         const updatedIssue = await bim360V2.updateIssue(issue_container, issue, JSON.stringify(payload), token);
