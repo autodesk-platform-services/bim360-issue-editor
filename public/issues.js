@@ -399,7 +399,7 @@ class IssueView {
                     $input.val(details.displayName);
                 })
                 .catch(err => {
-                    $.notify('Could not retrieve linked docs.\n Invalid document urn.\nSee console for more details.', 'error');
+                    $.notify('Could not retrieve linked docs.\n Invalid document urn.', 'error');
                     console.error('Could not retrieve linked docs.', err);
                     $input.val('');
                 });
