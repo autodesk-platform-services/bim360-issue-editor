@@ -373,6 +373,7 @@ router.get('/:issue_container/:issue/attachments', async function (req, res) {
 router.get('/:issue_container/:issue/attachments/:id', async function (req, res) {
     const { issue_container, issue, id } = req.params;
     const token = req.bim360.token;
+    const project_id ='b.'.concat(issue_container)
 
     try {
         const attachments = await bim360V2.listIssueAttachments(issue_container, issue, token);
@@ -380,10 +381,19 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
 
         const match = attachments.find(attachment => attachment.id === id);
         if (match) {
+            let urn = match.urn;
+            if(!urn.includes("/")){
+                const response = await bim360OssV2.getResourceTipVersion(project_id, match.urn, token)
+        
+                urn = response.data.data.relationships.storage.data.id
+
+              }
+              
            
-            const buffer = await bim360OssV2.downloadAttachment(match.urn, token);
-            const extension = match.urn.substr(match.urn.lastIndexOf('.'));
+            const buffer = await bim360OssV2.downloadAttachment(urn, project_id, token);
+            const extension = urn.substr(urn.lastIndexOf('.'));
             res.type(extension).send(buffer);
+
 
         } else {
             console.log("Error while previewing the file")
