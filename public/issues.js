@@ -386,7 +386,7 @@ class IssueView {
             const urn = $input.data('target-urn');
 
 
-            if (!urn || urn == null) {
+            if (!urn || urn == null || urn =='urn:adsk.wipprod:dm.lineage:aCGrm3rkTS-EsTNDE8O7Iw') {
                 $input.val('');
                 return;
             }
