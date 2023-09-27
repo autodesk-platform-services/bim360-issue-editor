@@ -114,6 +114,10 @@ When using [Visual Studio Code](https://code.visualstudio.com), add this configu
 }
 ```
 
+## Limitations
+
+ - Sample unable to download some attachments that are not .png, .jpeg, .jpg, .txt on the browser.
+
 ## License
 
 This sample is licensed under the terms of the [MIT License](https://tldrlegal.com/license/mit-license).
