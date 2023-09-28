@@ -116,7 +116,7 @@ When using [Visual Studio Code](https://code.visualstudio.com), add this configu
 
 ## Limitations
 
- - Sample unable to download some attachments that are not .png, .jpeg, .jpg, .txt on the browser.
+ - Sample unable to download Autodesk native product file attachments (rvt, dwg, nwd) on the browser.
 
 ## License
 
