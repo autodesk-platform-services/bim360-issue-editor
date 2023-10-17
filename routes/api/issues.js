@@ -8,6 +8,8 @@ const multer = require('multer');
 const mail = require('@sendgrid/mail');
 const upload = multer({ dest: 'uploads/' });
 var AdmZip = require("adm-zip");
+var http = require("http");
+// var stream = require("stream");
 
 const config = require('../../config');
 const { exportIssues, importIssues } = require('../../helpers/excel');
@@ -383,17 +385,19 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
         if (match) {
             let urn = match.urn;
             if(!urn.includes("/")){
-                const response = await bim360OssV2.getResourceTipVersion(project_id, match.urn, token)
-        
-                urn = response.data.data.relationships.storage.data.id
+               let folderId = match.wipUrn;
 
+                let webUrl =  `https://docs.b360.autodesk.com/projects/${encodeURIComponent(issue_container)}/folders/${folderId}/detail/viewer/items/${urn}`
+
+                res.writeHead(301, { Location:  webUrl });
+                return res.end();
+
+
+              }else{
+                const buffer = await bim360OssV2.downloadAttachment(urn, token);
+            
+            buffer.pipe(res);
               }
-              
-           
-            const buffer = await bim360OssV2.downloadAttachment(urn, project_id, token);
-            const extension = urn.substr(urn.lastIndexOf('.'));
-            res.type(extension).send(buffer);
-
 
         } else {
             console.log("Error while previewing the file")
