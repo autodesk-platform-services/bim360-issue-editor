@@ -38,7 +38,7 @@ class IssueView {
 
         } catch (err) {
             this.hideSpinner();
-            $.notify('Could not initialize issues.\nEither your project has no issues, issueTypes or rootCauses associated .', 'error');
+            $.notify('Could not initialize issues.\nEither your project has no users, issueTypes or rootCauses associated .', 'error');
             console.error('Could not initialize issues.', err);
             return;
         }
@@ -384,7 +384,9 @@ class IssueView {
         $tbody.find('input.issue-document').each(async function () {
             const $input = $(this);
             const urn = $input.data('target-urn');
-            if (!urn || urn == 'null') {
+
+
+            if (!urn || urn == null || urn =='urn:adsk.wipprod:dm.lineage:aCGrm3rkTS-EsTNDE8O7Iw') {
                 $input.val('');
                 return;
             }
@@ -397,7 +399,7 @@ class IssueView {
                     $input.val(details.displayName);
                 })
                 .catch(err => {
-                    $.notify('Could not retrieve linked docs.\nSee console for more details.', 'error');
+                    $.notify('Could not retrieve linked docs.\n Invalid document urn.', 'error');
                     console.error('Could not retrieve linked docs.', err);
                     $input.val('');
                 });
@@ -687,9 +689,9 @@ class DocsClient {
         const details = await this._get(`/${itemId}`);
         return details;
     }
-    async getLinkedDoc(issue) {
-        // const details = await this._get(`/${itemId}`);
-        const urn = issue.linkedDocuments.urn;
-        return urn;
-    }
+    // async getLinkedDoc(issue) {
+    //     // const details = await this._get(`/${itemId}`);
+    //     const urn = issue.linkedDocuments.urn;
+    //     return urn;
+    // }
 }

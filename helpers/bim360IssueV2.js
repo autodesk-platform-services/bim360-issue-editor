@@ -67,11 +67,11 @@ async function listIssuesV2(containerId, three_legged_token,  filter, page){
     let response = await axios.get(url, opts);
     let results = response.data.results;
 
-    while (response.data.pagination && response.data.pagination.nextUrl) {
-        url = response.data.pagination.nextUrl;
-        response = await axios.get(url, opts);
-        results = results.concat(response.data.results);
-    }
+    // while (response.data.pagination && response.data.pagination.nextUrl) {
+    //     url = response.data.pagination.nextUrl;
+    //     response = await axios.get(url, opts);
+    //     results = results.concat(response.data.results);
+    // }
 
     return results;
 

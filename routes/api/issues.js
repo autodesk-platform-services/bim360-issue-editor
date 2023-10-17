@@ -8,6 +8,8 @@ const multer = require('multer');
 const mail = require('@sendgrid/mail');
 const upload = multer({ dest: 'uploads/' });
 var AdmZip = require("adm-zip");
+var http = require("http");
+// var stream = require("stream");
 
 const config = require('../../config');
 const { exportIssues, importIssues } = require('../../helpers/excel');
@@ -165,7 +167,8 @@ router.get('/:issue_container/export-email', async function (req, res) {
                     to: user_email,
                     from: 'petr.broz@autodesk.com',
                     subject: 'Exported BIM360 Issues',
-                    text: 'Attached you will find the BIM360 issues exported from http://bim360-issue-editor.herokuapp.com.',ments: [
+                    text: 'Attached you will find the BIM360 issues exported from http://bim360-issue-editor.herokuapp.com.' ,
+                    attachments: [
                         {
                             content: excel.toString('base64'),
                             filename: 'issues.xlsx',
@@ -328,6 +331,10 @@ router.patch('/:issue_container/:issue', async function (req, res) {
     const token = req.bim360.token;
     const payload = req.body;
 
+    if(payload.locationId == ''){
+        delete payload.locationId
+    }
+
     try {
         
         const updatedIssue = await bim360V2.updateIssue(issue_container, issue, JSON.stringify(payload), token);
@@ -368,6 +375,7 @@ router.get('/:issue_container/:issue/attachments', async function (req, res) {
 router.get('/:issue_container/:issue/attachments/:id', async function (req, res) {
     const { issue_container, issue, id } = req.params;
     const token = req.bim360.token;
+    const project_id ='b.'.concat(issue_container)
 
     try {
         const attachments = await bim360V2.listIssueAttachments(issue_container, issue, token);
@@ -375,10 +383,21 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
 
         const match = attachments.find(attachment => attachment.id === id);
         if (match) {
-           
-            const buffer = await bim360OssV2.downloadAttachment(match.urn, token);
-            const extension = match.urn.substr(match.urn.lastIndexOf('.'));
-            res.type(extension).send(buffer);
+            let urn = match.urn;
+            if(!urn.includes("/")){
+               let folderId = match.wipUrn;
+
+                let webUrl =  `https://docs.b360.autodesk.com/projects/${encodeURIComponent(issue_container)}/folders/${folderId}/detail/viewer/items/${urn}`
+
+                res.writeHead(301, { Location:  webUrl });
+                return res.end();
+
+
+              }else{
+                const buffer = await bim360OssV2.downloadAttachment(urn, token);
+            
+            buffer.pipe(res);
+              }
 
         } else {
             console.log("Error while previewing the file")

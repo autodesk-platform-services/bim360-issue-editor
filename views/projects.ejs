@@ -30,7 +30,7 @@
                 </li>
             </ol>
             <% if (!session || !session.access_token) { %>
-                <a class="btn btn-primary ml-auto" href="/auth/login">Logibbbbn</a>
+                <a class="btn btn-primary ml-auto" href="/auth/login">Login</a>
             <% } else { %>
                 <div class="dropdown ml-auto">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="login-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -49,7 +49,7 @@
             <% for (const project of projects) { %>
                 <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
                     <div class="card">
-                        <img src="https://placeimg.com/320/180/arch?seed=<%= project.id %>" class="card-img-top" alt="Project <%= project.name %>">
+                        <img src="https://fakeimg.pl/640x360?seed=<%= project.id %>" class="card-img-top" alt="Project <%= project.name %>">
                         <div class="card-body">
                             <h5 class="card-title"><%= project.name %></h5>
                             <p><small class="text-muted"><%= project.id %></small></p>

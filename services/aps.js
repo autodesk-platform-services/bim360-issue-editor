@@ -1,10 +1,10 @@
 const APS = require('forge-apis');
 const axios = require('axios').default;
 const { client_id, client_secret, callback_url, scopes, PUBLIC_TOKEN_SCOPES } = require('../config.js');
-// @ts-ignore
-const internalAuthClient = new APS.AuthClientThreeLeggedV2(client_id, client_secret, callback_url, scopes);
-// @ts-ignore
-const publicAuthClient = new APS.AuthClientThreeLeggedV2(client_id, client_secret, callback_url, PUBLIC_TOKEN_SCOPES);
+
+const internalAuthClient = new APS.AuthClientThreeLegged(client_id, client_secret, callback_url, scopes);
+
+const publicAuthClient = new APS.AuthClientThreeLegged(client_id, client_secret, callback_url, PUBLIC_TOKEN_SCOPES);
 
 const service = module.exports = {};
 
