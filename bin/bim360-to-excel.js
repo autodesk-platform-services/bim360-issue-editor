@@ -18,6 +18,7 @@ const { exportIssues } = require('../helpers/excel');
 
 async function run(configPath, outputPath) {
     try {
+        console.log("test given path", __dirname);
         const config = fse.readJsonSync(configPath);
         console.log("json configs", config)
         console.log(`Exporting issues from BIM360 project ${config.project_id} into ${outputPath}.`);

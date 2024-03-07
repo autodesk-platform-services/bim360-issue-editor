@@ -185,6 +185,13 @@ class IssueView {
         for (const user of this.users) {
             $ownerPicker.append(`<option value="${user.autodeskId}">${escape(user.name)}</option>`);
         }
+        // Assigned dropdown
+        const $assignedPicker = $('#assigned-picker');
+        $assignedPicker.empty();
+        $assignedPicker.append(`<option value="">(All)</option>`);
+        for (const user of this.users) {
+            $assignedPicker.append(`<option value="${user.autodeskId}">${escape(user.name)}</option>`);
+        }
 
         // Issue type and subtype dropdowns
         const $issueTypePicker = $('#issue-type-picker');
@@ -284,6 +291,12 @@ class IssueView {
             </select>
         `;
 
+        const generateAssignSelect = (issue) => `
+            <select class="custom-select custom-select-sm issue-owner" data-original-value="${escape(issue.assignedTo)}" ${disabled('assignedTo', issue) ? 'disabled' : ''}>
+                ${this.users.map(user => `<option value="${user.autodeskId}" ${(user.autodeskId === issue.assignedTo) ? 'selected' : ''}>${escape(user.name)}</option>`).join('\n')}
+            </select>
+        `;
+
         const generateLocationSelect = (issue) => `
             <select class="custom-select custom-select-sm issue-location" data-original-value="${issue.locationId}" ${this.locations.length === 0 ? 'style="display:none"' : ''} ${disabled('locationId', issue) ? 'disabled' : ''}>
                 <option value=""></option>
@@ -340,6 +353,9 @@ class IssueView {
                     </td>
                     <td>
                         ${generateOwnerSelect(issue)}
+                    </td>
+                    <td>
+                        ${generateAssignSelect(issue)}
                     </td>
                     <td>
                         ${generateLocationSelect(issue)}
