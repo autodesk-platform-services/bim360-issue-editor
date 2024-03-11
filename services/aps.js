@@ -1,5 +1,3 @@
-const crypto = require('crypto');
-
 
 const { AuthenticationClient, ResponseType, Scopes, TokenTypeHint  } = require('@aps_sdk/authentication');
 
@@ -8,7 +6,6 @@ const { ApiResponse, SDKManager, SdkManagerBuilder  } = require ('@aps_sdk/autod
 const axios = require('axios').default;
 
 const { client_id, client_secret, callback_url, scopes, PUBLIC_TOKEN_SCOPES } = require('../config.js');
-
 
 
 const sdkmanager = SdkManagerBuilder.Create().build();

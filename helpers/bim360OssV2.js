@@ -12,8 +12,7 @@ async function downloadAttachment(urn, token) {
         attachment_object_key = split_by_splash[1]
         attachment_bucket_key = split_by_colon[3] 
 
-      // Generate a signed S3 URL
-   
+
     // const response = await downloadObject(attachment_bucket_key,attachment_object_key, token)
     const response = await downloadObjectStream(attachment_bucket_key,attachment_object_key, token)
     if (response) {
@@ -74,6 +73,7 @@ async function downloadAttachment(urn, token) {
 
 }
   
+
 
 
 module.exports = {

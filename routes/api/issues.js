@@ -375,7 +375,6 @@ router.get('/:issue_container/:issue/attachments', async function (req, res) {
 router.get('/:issue_container/:issue/attachments/:id', async function (req, res) {
     const { issue_container, issue, id } = req.params;
     const token = req.bim360.token;
-    const project_id ='b.'.concat(issue_container)
 
     try {
         const attachments = await bim360V2.listIssueAttachments(issue_container, issue, token);
@@ -396,7 +395,7 @@ router.get('/:issue_container/:issue/attachments/:id', async function (req, res)
               }else{
                 const buffer = await bim360OssV2.downloadAttachment(urn, token);
             
-            buffer.pipe(res);
+                buffer.pipe(res);
               }
 
         } else {

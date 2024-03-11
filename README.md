@@ -114,6 +114,10 @@ When using [Visual Studio Code](https://code.visualstudio.com), add this configu
 }
 ```
 
+## Limitations
+
+ - Sample unable to download Autodesk native product file attachments (rvt, dwg, nwd) on the browser.
+
 ## License
 
 This sample is licensed under the terms of the [MIT License](https://tldrlegal.com/license/mit-license).
