@@ -1,44 +1,47 @@
 {
-  "name": "bim360-issue-editor",
-  "version": "0.0.1",
-  "description": "Prototype application for bulk-editing BIM 360 issues using Autodesk Platform Services APIs.",
-  "keywords": [
-    "autodesk-platform-services",
-    "bim360"
-  ],
-  "license": "MIT",
-  "engines": {
-    "node": ">=10.15.0"
-  },
-  "scripts": {
-    "start": "node server.js"
-  },
-  "bugs": {
-    "url": "https://github.com/autodesk-platform-services/bim360-issue-editor/issues"
-  },
-  "homepage": "https://github.com/autodesk-platform-services/bim360-issue-editor#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/autodesk-platform-services/bim360-issue-editor.git"
-  },
-  "dependencies": {
-    "@sendgrid/mail": "^7.7.0",
-    "adm-zip": "^0.5.10",
-    "axios": "^0.21.2",
-    "cookie-session": "^1.3.3",
-    "ejs": "^3.1.7",
-    "exceljs": "^3.3.1",
-    "express": "^4.17.1",
-    "forge-apis": "^0.9.7",
-    "forge-server-utils": "^8.3.0",
-    "fs-extra": "^8.1.0",
-    "minizip-asm.js": "^1.0.10",
-    "multer": "^1.4.2",
-    "node-7z": "^3.0.0",
-    "node-zip": "^1.1.1",
-    "which": "^3.0.1"
-  },
-  "devDependencies": {
-    "archiver-zip-encryptable": "^1.0.10"
-  }
+    "name": "bim360-issue-editor",
+    "version": "0.0.1",
+    "description": "Prototype application for bulk-editing BIM 360 issues using Autodesk Platform Services APIs.",
+    "keywords": [
+        "autodesk-platform-services",
+        "bim360"
+    ],
+    "license": "MIT",
+    "engines": {
+        "node": ">=10.15.0"
+    },
+    "scripts": {
+        "start": "node server.js"
+    },
+    "bugs": {
+        "url": "https://github.com/autodesk-platform-services/bim360-issue-editor/issues"
+    },
+    "homepage": "https://github.com/autodesk-platform-services/bim360-issue-editor#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/autodesk-platform-services/bim360-issue-editor.git"
+    },
+    "dependencies": {
+        "@aps_sdk/authentication": "^0.0.1-beta.1",
+        "@aps_sdk/autodesk-sdkmanager": "^0.0.4-beta.1",
+        "@sendgrid/mail": "^7.7.0",
+        "adm-zip": "^0.5.10",
+        "axios": "^0.21.2",
+        "cookie-session": "^1.3.3",
+        "crypto": "^1.0.1",
+        "ejs": "^3.1.7",
+        "exceljs": "^3.3.1",
+        "express": "^4.17.1",
+        "forge-apis": "^0.9.7",
+        "forge-server-utils": "^8.3.0",
+        "fs-extra": "^8.1.0",
+        "minizip-asm.js": "^1.0.10",
+        "multer": "^1.4.2",
+        "node-7z": "^3.0.0",
+        "node-zip": "^1.1.1",
+        "which": "^3.0.1"
+    },
+    "devDependencies": {
+        "archiver-zip-encryptable": "^1.0.10"
+    }
 }
