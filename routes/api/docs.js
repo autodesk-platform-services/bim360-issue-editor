@@ -45,6 +45,7 @@ router.use('/', async function (req, res, next) {
 // GET /api/docs/:project/:item
 router.get('/:project/:item', async function (req, res) {
     const { project, item } = req.params;
+
     try {
         const details = await req.bim360.getItemDetails(project, item);
         res.json(details);

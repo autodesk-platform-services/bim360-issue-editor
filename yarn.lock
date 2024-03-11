@@ -2,6 +2,15 @@
 # yarn lockfile v1
 
 
+"@aps_sdk/authentication@^0.0.1-beta.1":
+  version "0.0.1-beta.1"
+  resolved "https://registry.npmjs.org/@aps_sdk/authentication/-/authentication-0.0.1-beta.1.tgz"
+  integrity sha512-MGZfC/x9lFmYKEsxAKYE8/q9kH1aS3AyB/qDVEUOxZ6gxRH6AhD4xLVKyD00+6PSq2wMRo+x1KUr9Q8DOqAbcA==
+  dependencies:
+    "@aps_sdk/autodesk-sdkmanager" "^0.0.4-beta.1"
+    "@types/node" "^20.9.0"
+    axios "^1.6.1"
+
 "@aps_sdk/autodesk-sdkmanager@^0.0.4-beta.1":
   version "0.0.4-beta.1"
   resolved "https://registry.npmjs.org/@aps_sdk/autodesk-sdkmanager/-/autodesk-sdkmanager-0.0.4-beta.1.tgz"
@@ -139,7 +148,7 @@
   resolved "https://registry.npmjs.org/@types/mime/-/mime-1.3.5.tgz"
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
 
-"@types/node@*":
+"@types/node@*", "@types/node@^20.9.0":
   version "20.11.25"
   resolved "https://registry.npmjs.org/@types/node/-/node-20.11.25.tgz"
   integrity sha512-TBHyJxk2b7HceLVGFcpAUjsa5zIdsPWlR6XHfyGzd0SFu+/NFgQgMAl96MSDZgQDvJAvV6BKsFOrt6zIL09JDw==
@@ -307,6 +316,15 @@ axios@^0.26.0:
     follow-redirects "^1.14.8"
 
 axios@^1.4.0:
+  version "1.6.7"
+  resolved "https://registry.npmjs.org/axios/-/axios-1.6.7.tgz"
+  integrity sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==
+  dependencies:
+    follow-redirects "^1.15.4"
+    form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
+
+axios@^1.6.1:
   version "1.6.7"
   resolved "https://registry.npmjs.org/axios/-/axios-1.6.7.tgz"
   integrity sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==
@@ -637,6 +655,11 @@ crypto-random-string@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/crypto-random-string/-/crypto-random-string-1.0.0.tgz"
   integrity sha512-GsVpkFPlycH7/fRR7Dhcmnoii54gV1nz7y4CWyeFS14N+JVBBhY+r8amRHE4BwSYal7BPTDp8isvAlCxyFt3Hg==
+
+crypto@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/crypto/-/crypto-1.0.1.tgz"
+  integrity sha512-VxBKmeNcqQdiUQUW2Tzq0t377b54N2bMtXO/qiLa+6eRRmmC4qT3D4OnTGoT/U6O9aklQ/jTwbOtRMTTY8G0Ig==
 
 dayjs@^1.8.26:
   version "1.11.10"

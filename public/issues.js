@@ -691,6 +691,8 @@ class DocsClient {
                 url.searchParams.append(key, params[key]);
             }
         }
+
+
         const response = await fetch(url.toString());
         if (response.ok) {
             const json = await response.json();

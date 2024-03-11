@@ -7,13 +7,11 @@ let router = express.Router();
 
 router.get('/login', function (req, res) {
     const url = getAuthorizationUrl();
-
     res.redirect(url);
 });
 
 router.get('/logout', function (req, res) {
     const url = getLogoutUrl();
-    // console.log("logout url", url);
     req.session = null;
     res.redirect(url);
 });
