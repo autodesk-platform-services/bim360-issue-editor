@@ -7,7 +7,6 @@ let router = express.Router();
 
 router.get('/login', function (req, res) {
     const url = getAuthorizationUrl();
-    console.log("authorize url", url)
     res.redirect(url);
 });
 
@@ -34,7 +33,6 @@ router.get('/api/auth/token', authRefreshMiddleware, function (req, res) {
 router.get('/api/auth/profile', authRefreshMiddleware, async function (req, res, next) {
     try {
         const profile = await getUserProfile(req.internalOAuthToken);
-        // console.log('user-profile', profile)
        
         res.json({ name: `${profile.name} ` });
     } catch (err) {

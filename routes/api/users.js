@@ -2,6 +2,7 @@ const express = require('express');
 const { AuthenticationClient, BIM360Client } = require('forge-server-utils');
 const config = require('../../config');
 const axios = require('axios').default;
+const { authRefreshMiddleware } = require('../../services/aps');
 
 let authClient = new AuthenticationClient(config.client_id, config.client_secret);
 let router = express.Router();
@@ -25,42 +26,38 @@ router.use(express.json());
 // Refresh token whenever needed
 router.use('/', async function (req, res, next) {
     if (req.session.access_token) {
-        if (Date.now() > req.session.expires_at) {
-            try {
-                const token = await authClient.refreshToken(config.INTERNAL_TOKEN_SCOPES, req.session.refresh_token);
-                req.session.access_token = token.access_token;
-                req.session.refresh_token = token.refresh_token;
-                req.session.expires_at = Date.now() + token.expires_in * 1000;
-            } catch(err) {
-                handleError(err, res);
-                return;
-            }
-        }
-        req.bim360 = new BIM360Client({ client_id: config.client_id, client_secret: config.client_secret }, undefined, req.query.region);
-        next();
-    } else {
-        res.status(401).end();
+      try{
+        await authRefreshMiddleware(req)
+    
+      }catch (err) {
+        res.render('error', { session: req.session, error: err });
+        return;
+      }
+       req.bim360 = new BIM360Client({ token: req.session.access_token }, undefined, req.query.region);
+        
     }
+    next();
 });
 
 // GET /api/users/:project_id
 router.get('/:project_id', async function (req, res) {
     const { project_id } = req.params;
+    const token = req.bim360.token;
     try {
-        const users = await loadProjectUsers(project_id);
+        const users = await loadProjectUsers(project_id, token);
         res.json(users);
     } catch(err) {
         handleError(err, res);
     }
 });
 
-async function loadProjectUsers(projectId) {
-    const auth = await authClient.authenticate(['account:read']);
+async function loadProjectUsers(projectId, token) {
+    // const auth = await authClient.authenticate(['account:read']);
     const PageSize = 64;
     let url = `https://developer.api.autodesk.com/bim360/admin/v1/projects/${projectId}/users?limit=${PageSize}`;
     let opts = {
         headers: {
-            'Authorization': `Bearer ${auth.access_token}`
+            'Authorization': `Bearer ${token}`
         }
     };
     let response = await axios.get(url, opts);
