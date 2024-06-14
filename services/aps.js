@@ -1,4 +1,4 @@
-
+const crypto = require('crypto');
 const { AuthenticationClient, ResponseType, Scopes, TokenTypeHint  } = require('@aps_sdk/authentication');
 
 const { ApiResponse, SDKManager, SdkManagerBuilder  } = require ('@aps_sdk/autodesk-sdkmanager');
@@ -26,11 +26,8 @@ service.authCallbackMiddleware = async (req, res, next) => {
     
     const internalCredentials = await authenticationClient.getThreeLeggedTokenAsync(client_id, client_secret, req.query.code, callback_url);
 
-    const publicCredentials = internalCredentials;
-
     req.session.access_token = internalCredentials.access_token;
-    req.session.public_token = publicCredentials.access_token;
-    req.session.refresh_token = publicCredentials.refresh_token;
+    req.session.refresh_token = internalCredentials.refresh_token;
     req.session.expires_at = Date.now() + internalCredentials.expires_in * 1000;
     const userInfo = await authenticationClient.getUserinfoAsync(req.session.access_token);
     req.session.user_name = userInfo.name
@@ -49,12 +46,8 @@ service.authRefreshMiddleware = async (req, res, next) => {
     if (expires_at < Date.now()) {
 
         const internalCredentials = await authenticationClient.getRefreshTokenAsync(client_id, client_secret, refresh_token,scopes);
-
-        const publicCredentials = internalCredentials
-
-        req.session.public_token = publicCredentials.access_token;
         req.session.access_token = internalCredentials.access_token;
-        req.session.refresh_token = publicCredentials.refresh_token;
+        req.session.refresh_token = internalCredentials.refresh_token;
         req.session.expires_at = Date.now() + internalCredentials.expires_in * 1000;
     }
     req.internalOAuthToken = {
@@ -62,7 +55,7 @@ service.authRefreshMiddleware = async (req, res, next) => {
         expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
     };
     req.publicOAuthToken = {
-        access_token: req.session.public_token,
+        access_token: req.session.access_token,
         expires_in: Math.round((req.session.expires_at - Date.now()) / 1000)
     };
     // next();
@@ -79,5 +72,8 @@ service.getUserProfile = async (token) => {
 
     return userInfo;
 };
+
+
+  
 
 

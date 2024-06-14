@@ -11,6 +11,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({ secret: SERVER_SESSION_SECRET, maxAge: 24 * 60 * 60 * 1000 }));
 app.use('/auth', require('./routes/auth'));
+// app.use(require('./routes/auth'));
+
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/docs', require('./routes/api/docs'));
 app.use('/api/issues', require('./routes/api/issues'));

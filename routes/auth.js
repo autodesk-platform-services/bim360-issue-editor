@@ -16,7 +16,7 @@ router.get('/logout', function (req, res) {
     res.redirect(url);
 });
 
-router.get('/callback', authCallbackMiddleware, function (req, res) {
+router.get('/callback', authCallbackMiddleware, function (req, res, next) {
     try {
     res.redirect('/');
 } catch (err) {
@@ -33,7 +33,6 @@ router.get('/api/auth/token', authRefreshMiddleware, function (req, res) {
 router.get('/api/auth/profile', authRefreshMiddleware, async function (req, res, next) {
     try {
         const profile = await getUserProfile(req.internalOAuthToken);
-        // console.log('user-profile', profile)
        
         res.json({ name: `${profile.name} ` });
     } catch (err) {
