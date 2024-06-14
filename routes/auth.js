@@ -13,7 +13,7 @@ router.get('/login', function (req, res) {
 router.get('/logout', function (req, res) {
     const url = getLogoutUrl();
     req.session = null;
-    res.redirect(url);
+    res.redirect('/');
 });
 
 router.get('/callback', authCallbackMiddleware, function (req, res, next) {
