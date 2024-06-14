@@ -1,4 +1,4 @@
-
+const crypto = require('crypto');
 const { AuthenticationClient, ResponseType, Scopes, TokenTypeHint  } = require('@aps_sdk/authentication');
 
 const { ApiResponse, SDKManager, SdkManagerBuilder  } = require ('@aps_sdk/autodesk-sdkmanager');
@@ -26,7 +26,7 @@ service.authCallbackMiddleware = async (req, res, next) => {
     
     const internalCredentials = await authenticationClient.getThreeLeggedTokenAsync(client_id, client_secret, req.query.code, callback_url);
 
-    const publicCredentials = internalCredentials;
+     const publicCredentials = internalCredentials;
 
     req.session.access_token = internalCredentials.access_token;
     req.session.public_token = publicCredentials.access_token;
@@ -79,5 +79,8 @@ service.getUserProfile = async (token) => {
 
     return userInfo;
 };
+
+
+  
 
 
